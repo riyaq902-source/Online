@@ -1,1 +1,2306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<meta name="theme-color" content="#1a0b3d" />
+<title>Bubble Pop — Premium Puzzle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1:#1a0b3d; --bg2:#0a0420; --bg3:#2a1065;
+    --pink:#ff3d8b; --cyan:#3ee7ff; --yellow:#ffd23f;
+    --orange:#ff8a3d; --green:#6ee36a; --violet:#b06bff;
+    --glass:rgba(255,255,255,0.06);
+    --glass2:rgba(255,255,255,0.10);
+    --stroke:rgba(255,255,255,0.12);
+    --text:#f4f0ff; --muted:#9d8fc9;
+    --danger:#ff6b6b;
+    --shadow:0 20px 60px rgba(0,0,0,.5);
+    --radius:18px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#000;color:var(--text);font-family:'Outfit',system-ui,sans-serif;user-select:none;-webkit-user-select:none}
+  body{
+    background:
+      radial-gradient(1200px 800px at 20% 10%, #3a1578 0%, transparent 60%),
+      radial-gradient(1000px 700px at 85% 90%, #1a3a8a 0%, transparent 60%),
+      linear-gradient(180deg,var(--bg1),var(--bg2));
+    min-height:100vh;position:fixed;inset:0;
+  }
+  #app{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden}
+  .screen{position:absolute;inset:0;display:none;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+  .screen.active{display:flex}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;gap:10px;z-index:5}
+  .pill{display:inline-flex;align-items:center;gap:8px;background:var(--glass);border:1px solid var(--stroke);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:8px 14px;border-radius:999px;font-weight:600;font-size:13px}
+  .icon-btn{width:42px;height:42px;border-radius:14px;background:var(--glass);border:1px solid var(--stroke);display:flex;align-items:center;justify-content:center;color:var(--text);cursor:pointer;font-size:20px;transition:transform .15s}
+  .icon-btn:active{transform:scale(.92)}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:14px 22px;border-radius:16px;font-weight:700;font-size:15px;
+    color:#fff;border:none;cursor:pointer;
+    background:linear-gradient(180deg,#ff5aa0,#d81b72);
+    box-shadow:0 8px 20px rgba(216,27,114,.35), inset 0 1px 0 rgba(255,255,255,.25);
+    transition:transform .12s ease;
+    font-family:inherit;letter-spacing:.2px;
+  }
+  .btn:active{transform:translateY(1px) scale(.98)}
+  .btn.ghost{background:var(--glass);box-shadow:none;border:1px solid var(--stroke)}
+  .btn.ghost:active{background:var(--glass2)}
+  .btn.green{background:linear-gradient(180deg,#8df07a,#2fb84a);box-shadow:0 8px 20px rgba(47,184,74,.35)}
+  .btn.orange{background:linear-gradient(180deg,#ffb257,#ff7a1a);box-shadow:0 8px 20px rgba(255,122,26,.35)}
+  .btn.big{padding:16px 24px;font-size:16px;border-radius:18px}
+  .btn.block{width:100%}
+  .btn[disabled]{opacity:.6;pointer-events:none;cursor:not-allowed}
+  .scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding:8px 18px 120px;-webkit-overflow-scrolling:touch}
+  .scroll::-webkit-scrollbar{width:0}
+  .card{background:var(--glass);border:1px solid var(--stroke);border-radius:var(--radius);padding:16px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  .card.solid{background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02))}
+  h1,h2,h3{margin:0;font-weight:800;letter-spacing:.3px}
+  h1{font-size:26px}h2{font-size:20px}h3{font-size:15px}
+  .muted{color:var(--muted)}
+  .row{display:flex;align-items:center;gap:10px}
+  .spacer{flex:1}
+  
+  .auth-wrap{flex:1;display:flex;flex-direction:column;justify-content:center;padding:24px;max-width:440px;margin:0 auto;width:100%}
+  .auth-logo{font-size:42px;font-weight:900;letter-spacing:-1px;background:linear-gradient(180deg,#fff,#ffb3e0 55%,#ff4f97);-webkit-background-clip:text;background-clip:text;color:transparent;text-align:center;margin-bottom:6px}
+  .auth-sub{text-align:center;color:var(--muted);font-size:13px;margin-bottom:28px;letter-spacing:3px;font-weight:600}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+  .input{width:100%;padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--stroke);color:#fff;font-family:inherit;font-size:15px;outline:none;transition:border-color .2s}
+  .input:focus{border-color:var(--pink);background:rgba(255,255,255,.08)}
+  .input.err{border-color:var(--danger)}
+  .err-msg{color:var(--danger);font-size:12px;margin-top:4px;display:none}
+  .err-msg.show{display:block}
+  .link{color:var(--cyan);font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;background:none;border:none;font-family:inherit;padding:0}
+  .link:hover{text-decoration:underline}
+  .auth-foot{text-align:center;margin-top:18px;font-size:13px;color:var(--muted)}
 
+  .hero{padding:10px 18px 4px}
+  .logo{font-size:38px;font-weight:900;letter-spacing:-1px;background:linear-gradient(180deg,#fff,#ffb3e0 55%,#ff4f97);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1}
+  .logo small{display:block;font-size:11px;font-weight:600;letter-spacing:5px;color:var(--muted);-webkit-text-fill-color:var(--muted);margin-top:4px}
+  .balance-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px;margin-top:14px}
+  .bal{padding:14px;border-radius:18px;background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(255,255,255,.02));border:1px solid var(--stroke);position:relative;overflow:hidden}
+  .bal .lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;font-weight:600}
+  .bal .val{font-size:22px;font-weight:900;margin-top:4px}
+  .play-wrap{padding:18px}
+  .play-btn{width:100%;padding:20px;border-radius:22px;font-size:18px;background:linear-gradient(180deg,#ff6aa8,#d81b72);box-shadow:0 14px 30px rgba(216,27,114,.45), inset 0 1px 0 rgba(255,255,255,.25)}
+  .menu-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 18px}
+  .menu-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 6px;border-radius:16px;background:var(--glass);border:1px solid var(--stroke);color:#fff;cursor:pointer;font-family:inherit;text-align:center}
+  .menu-item:active{transform:scale(.96)}
+  .menu-item .mi{font-size:26px;line-height:1}
+  .menu-item .mt{font-size:11px;font-weight:600}
+  .bottom-nav{position:absolute;left:12px;right:12px;bottom:12px;display:flex;justify-content:space-around;background:rgba(10,4,32,.75);border:1px solid var(--stroke);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:22px;padding:8px;z-index:4}
+  .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:14px;color:var(--muted);cursor:pointer;font-size:10px;font-weight:600;background:none;border:none;font-family:inherit}
+  .nav-btn .ni{font-size:22px;line-height:1}
+  .nav-btn.active{color:#fff;background:linear-gradient(180deg,rgba(255,61,139,.25),rgba(176,107,255,.15));border:1px solid rgba(255,61,139,.3)}
+  .bg-bubbles{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+  .bg-bubbles span{position:absolute;border-radius:50%;filter:blur(.3px);opacity:.5;animation:float 16s linear infinite}
+  @keyframes float{0%{transform:translateY(20px) scale(.9)}50%{transform:translateY(-30px) scale(1.05)}100%{transform:translateY(20px) scale(.9)}}
+
+  .level-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:4px}
+  .level-card{position:relative;padding:14px;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border:1px solid var(--stroke);color:#fff;cursor:pointer;min-height:120px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;font-family:inherit;text-align:left}
+  .level-card:active{transform:scale(.98)}
+  .level-card.locked{opacity:.5;cursor:not-allowed}
+  .level-card .num{font-size:30px;font-weight:900;line-height:1}
+  .level-card .name{font-weight:700;font-size:13px;margin-top:4px}
+  .level-card .stars{display:flex;gap:3px;margin-top:6px;font-size:16px}
+  .level-card .stars .off{opacity:.25}
+  .level-card .lock{position:absolute;top:10px;right:10px;font-size:16px}
+  .level-card.done{border-color:rgba(110,227,106,.4)}
+  .level-card.perfect{border-color:rgba(255,210,63,.5);box-shadow:0 0 20px rgba(255,210,63,.15)}
+
+  #screen-game{padding:0}
+  .game-wrap{position:relative;flex:1;display:flex;flex-direction:column;min-height:0}
+  .game-hud{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;gap:8px;z-index:3}
+  .game-hud .chip{background:var(--glass);border:1px solid var(--stroke);border-radius:14px;padding:8px 10px;font-weight:700;font-size:12px;display:inline-flex;align-items:center;gap:6px}
+  .game-hud .chip .k{color:var(--muted);font-weight:500;font-size:10px}
+  #gameCanvas{display:block;width:100%;flex:1;touch-action:none;background:radial-gradient(800px 500px at 50% 10%, rgba(176,107,255,.18), transparent 60%), radial-gradient(600px 400px at 50% 100%, rgba(62,231,255,.12), transparent 60%), linear-gradient(180deg,#0c0625,#1a0b3d)}
+  .powerups{position:absolute;left:8px;right:8px;bottom:8px;display:flex;justify-content:space-between;align-items:flex-end;pointer-events:none;z-index:2}
+  .pu{pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--glass);border:1px solid var(--stroke);border-radius:14px;padding:8px;min-width:56px;cursor:pointer;font-size:10px;font-weight:700;font-family:inherit;color:#fff}
+  .pu:active{transform:scale(.95)}
+  .pu .ic{font-size:20px;line-height:1}
+  .pu .c{color:var(--yellow);font-size:9px}
+  .pu[disabled]{opacity:.35;pointer-events:none}
+
+  .overlay{position:absolute;inset:0;background:rgba(5,2,20,.8);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:20;padding:20px}
+  .overlay.active{display:flex}
+  .modal{width:100%;max-width:420px;background:linear-gradient(180deg,#2a1065,#1a0b3d);border:1px solid var(--stroke);border-radius:24px;padding:22px;box-shadow:var(--shadow);text-align:center;max-height:90vh;overflow-y:auto}
+  .modal h2{margin-bottom:10px}
+  .modal .big-score{font-size:40px;font-weight:900;background:linear-gradient(180deg,#fff,#ffd23f);-webkit-background-clip:text;background-clip:text;color:transparent;margin:8px 0}
+  .stars-big{display:flex;gap:8px;justify-content:center;font-size:32px;margin:6px 0 12px}
+  .stars-big .off{opacity:.2;filter:grayscale(1)}
+  .stat-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--stroke);font-size:13px}
+  .stat-row:last-child{border-bottom:none}
+  .modal .actions{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+
+  .wallet-card{padding:18px;border-radius:20px;border:1px solid var(--stroke);margin-bottom:12px;position:relative;overflow:hidden}
+  .wallet-card.real{background:linear-gradient(135deg,#0f6b3a,#0a4a28)}
+  .wallet-card.game{background:linear-gradient(135deg,#3a1578,#1a3a8a)}
+  .wallet-card .lbl{font-size:11px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:2px;font-weight:600}
+  .wallet-card .val{font-size:30px;font-weight:900;margin-top:4px}
+  .wallet-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .status-pill{display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.5px}
+  .status-pill.pending{background:rgba(255,180,87,.2);color:#ffb257}
+  .status-pill.done{background:rgba(110,227,106,.2);color:#6ee36a}
+  .status-pill.rejected{background:rgba(255,107,107,.2);color:#ff6b6b}
+  .tx-item{padding:12px;border-radius:14px;background:var(--glass);border:1px solid var(--stroke);margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .tx-item .tx-main{flex:1;min-width:0}
+  .tx-item .tx-title{font-weight:700;font-size:13px}
+  .tx-item .tx-sub{font-size:11px;color:var(--muted);margin-top:2px; word-break: break-all;}
+  .tx-item .tx-amt{font-weight:800;font-size:14px;white-space:nowrap}
+  .tx-item .tx-amt.plus{color:#6ee36a}
+  .tx-item .tx-amt.minus{color:#ff6b6b}
+
+  .reward-card{padding:14px;border-radius:16px;background:var(--glass);border:1px solid var(--stroke);margin-bottom:10px;display:flex;align-items:center;gap:12px}
+  .reward-card .ic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;background:linear-gradient(135deg,#ffd23f,#ff8a3d);flex-shrink:0}
+  .reward-card.claimed .ic{background:linear-gradient(135deg,#6ee36a,#2fb84a)}
+  .reward-card .t{font-weight:700;font-size:14px}
+  .reward-card .s{font-size:11px;color:var(--muted);margin-top:2px}
+
+  .ref-code-box{padding:16px;border-radius:16px;background:linear-gradient(135deg,rgba(255,61,139,.15),rgba(176,107,255,.15));border:1px solid rgba(255,61,139,.3);text-align:center;margin:14px 0}
+  .ref-code-box .lbl{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;font-weight:600}
+  .ref-code-box .code{font-size:28px;font-weight:900;letter-spacing:3px;margin-top:6px;background:linear-gradient(180deg,#fff,#ffb3e0);-webkit-background-clip:text;background-clip:text;color:transparent;font-family:'Courier New',monospace;user-select:none;pointer-events:none}
+  .ref-code-box .note{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5}
+  .ref-stat{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--stroke);font-size:13px}
+  .ref-stat:last-child{border-bottom:none}
+
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(100px);background:rgba(10,4,32,.95);border:1px solid var(--stroke);padding:10px 18px;border-radius:999px;font-weight:600;font-size:13px;z-index:100;transition:transform .3s;pointer-events:none;max-width:90vw;text-align:center}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+
+  .switch{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--stroke)}
+  .switch:last-child{border-bottom:none}
+  .toggle{width:44px;height:26px;background:rgba(255,255,255,.12);border-radius:99px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+  .toggle.on{background:linear-gradient(90deg,#ff3d8b,#b06bff)}
+  .toggle::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s}
+  .toggle.on::after{left:21px}
+
+  .alert{padding:12px;border-radius:12px;font-size:12px;line-height:1.5;margin-bottom:12px}
+  .alert.info{background:rgba(62,231,255,.1);border:1px solid rgba(62,231,255,.25);color:#9be9ff}
+  .alert.warn{background:rgba(255,180,87,.1);border:1px solid rgba(255,180,87,.25);color:#ffd089}
+  .alert.success{background:rgba(110,227,106,.1);border:1px solid rgba(110,227,106,.25);color:#a8e8a0}
+  .alert.maintenance{background:rgba(255,107,107,.15);border:1px solid rgba(255,107,107,.4);color:#ff9a9a;text-align:center;font-weight:700}
+
+  .tg-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border-radius:14px;background:linear-gradient(180deg,#2fa8e8,#1a8ac9);color:#fff;font-weight:700;text-decoration:none;font-size:14px;box-shadow:0 8px 20px rgba(26,138,201,.35)}
+  .tg-btn:active{transform:scale(.98)}
+
+  .bkash-num{font-family:'Courier New',monospace;font-size:20px;font-weight:800;letter-spacing:2px;color:#e22ca4;background:rgba(226,44,168,.1);padding:12px;border-radius:12px;border:1px solid rgba(226,44,168,.3);text-align:center;margin:10px 0}
+
+  .info-banner{background:linear-gradient(135deg,rgba(62,231,255,.1),rgba(176,107,255,.1));border:1px solid rgba(62,231,255,.3);border-radius:14px;padding:12px 16px;margin:0 18px 14px;font-size:12px;color:#9be9ff;display:flex;align-items:center;gap:10px}
+  .info-banner .ib-icon{font-size:20px}
+
+  @media (min-width:720px){
+    .menu-grid{grid-template-columns:repeat(8,1fr)}
+    .level-grid{grid-template-columns:repeat(5,1fr)}
+    .logo{font-size:48px}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important;transition:none !important}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <section id="screen-login" class="screen active">
+    <div class="auth-wrap">
+      <div class="auth-logo">Bubble Pop</div>
+      <div class="auth-sub">PREMIUM PUZZLE</div>
+      <div class="field">
+        <label>Email</label>
+        <input class="input" id="loginEmail" type="email" placeholder="you@example.com" autocomplete="email" />
+        <div class="err-msg" id="loginEmailErr"></div>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input class="input" id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password" />
+        <div class="err-msg" id="loginPassErr"></div>
+      </div>
+      <div class="row" style="justify-content:flex-end;margin-bottom:14px">
+        <button class="link" id="btnForgot">Forgot password?</button>
+      </div>
+      <button class="btn big block" id="btnLogin">Log In</button>
+      <div class="auth-foot">
+        Don't have an account? <button class="link" id="btnGoSignup">Sign up</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-signup" class="screen">
+    <div class="auth-wrap">
+      <div class="auth-logo">Create Account</div>
+      <div class="auth-sub">JOIN THE GAME</div>
+      <div class="field">
+        <label>Email</label>
+        <input class="input" id="suEmail" type="email" placeholder="you@example.com" autocomplete="email" />
+        <div class="err-msg" id="suEmailErr"></div>
+      </div>
+      <div class="field">
+        <label>Phone Number</label>
+        <input class="input" id="suPhone" type="tel" placeholder="01XXXXXXXXX" autocomplete="tel" />
+        <div class="err-msg" id="suPhoneErr"></div>
+      </div>
+      <div class="field">
+        <label>Referral Code <span class="muted" style="text-transform:none;font-weight:400">(optional)</span></label>
+        <input class="input" id="suRef" type="text" placeholder="Enter referral code" autocomplete="off" />
+        <div class="err-msg" id="suRefErr"></div>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input class="input" id="suPass" type="password" placeholder="At least 6 characters" autocomplete="new-password" />
+        <div class="err-msg" id="suPassErr"></div>
+      </div>
+      <button class="btn big block" id="btnSignup">Create Account</button>
+      <div class="auth-foot">
+        Already have an account? <button class="link" id="btnGoLogin">Log in</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-forgot" class="screen">
+    <div class="auth-wrap">
+      <div class="auth-logo">Reset Password</div>
+      <div class="auth-sub">ACCOUNT RECOVERY</div>
+      <div class="card solid" style="margin-bottom:16px">
+        <div class="muted" style="font-size:13px;line-height:1.6">
+          For password recovery, please contact our support team directly on Telegram. We'll help you regain access to your account.
+        </div>
+      </div>
+      <a class="tg-btn block" style="justify-content:center;text-decoration:none" href="https://t.me/pupmasterbd" target="_blank" rel="noopener">
+        💬 Contact Support on Telegram
+      </a>
+      <div style="height:14px"></div>
+      <button class="btn ghost block" id="btnForgotBack">← Back to Login</button>
+    </div>
+  </section>
+
+  <section id="screen-home" class="screen">
+    <div class="bg-bubbles" id="bgBubbles"></div>
+    <div class="topbar" style="position:relative;z-index:2">
+      <div class="pill"><span></span><span id="homeCoins">0</span></div>
+      <div class="row">
+        <div class="pill"><span>💵</span><span>৳<span id="homeReal">0</span></span></div>
+        <button class="icon-btn" id="btnSound" title="Sound">🔊</button>
+      </div>
+    </div>
+    <div class="scroll" style="position:relative;z-index:1">
+      <div class="hero">
+        <div class="logo">Bubble Pop<small>PREMIUM PUZZLE</small></div>
+      </div>
+      <div class="info-banner" id="maintenanceBanner" style="display:none">
+        <span class="ib-icon"></span>
+        <span>গেমটি এখন মেইনটেন্যান্সে আছে। অনুগ্রহ করে পরে চেষ্টা করুন।</span>
+      </div>
+      <div class="balance-row">
+        <div class="bal">
+          <div class="lbl">Game Coins</div>
+          <div class="val">🪙 <span id="balCoins">0</span></div>
+        </div>
+        <div class="bal">
+          <div class="lbl">Real Balance</div>
+          <div class="val">৳<span id="balReal">0</span></div>
+        </div>
+      </div>
+      <div class="play-wrap">
+        <button class="btn play-btn big" id="btnPlay">▶ PLAY NOW</button>
+      </div>
+      <div class="menu-grid">
+        <button class="menu-item" data-nav="levels"><div class="mi">️</div><div class="mt">Levels</div></button>
+        <button class="menu-item" data-nav="wallet"><div class="mi">💳</div><div class="mt">Wallet</div></button>
+        <button class="menu-item" data-nav="rewards"><div class="mi">🎁</div><div class="mt">Rewards</div></button>
+        <button class="menu-item" data-nav="referral"><div class="mi">👥</div><div class="mt">Refer</div></button>
+        <button class="menu-item" data-nav="profile"><div class="mi">👤</div><div class="mt">Profile</div></button>
+        <button class="menu-item" data-nav="support"><div class="mi">💬</div><div class="mt">Support</div></button>
+        <button class="menu-item" data-nav="settings"><div class="mi">⚙️</div><div class="mt">Settings</div></button>
+        <button class="menu-item" id="btnLogout"><div class="mi">🚪</div><div class="mt">Logout</div></button>
+      </div>
+      <div style="height:100px"></div>
+    </div>
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-nav="home"><div class="ni">🏠</div><div>Home</div></button>
+      <button class="nav-btn" data-nav="levels"><div class="ni">️</div><div>Levels</div></button>
+      <button class="nav-btn" data-nav="wallet"><div class="ni">💳</div><div>Wallet</div></button>
+      <button class="nav-btn" data-nav="rewards"><div class="ni">🎁</div><div>Rewards</div></button>
+      <button class="nav-btn" data-nav="profile"><div class="ni">👤</div><div>Profile</div></button>
+    </nav>
+  </section>
+
+  <section id="screen-levels" class="screen">
+    <div class="topbar">
+      <button class="icon-btn" data-back="home">←</button>
+      <h2>Select Level</h2>
+      <div class="pill"><span>🏆</span><span id="lvBest">0</span></div>
+    </div>
+    <div class="scroll">
+      <div class="level-grid" id="levelGrid"></div>
+      <div style="height:40px"></div>
+    </div>
+  </section>
+
+  <section id="screen-game" class="screen">
+    <div class="game-hud">
+      <button class="icon-btn" id="btnPause">⏸</button>
+      <div class="chip"><span class="k">LVL</span><span id="hudLevel">1</span></div>
+      <div class="chip"><span class="k">SCORE</span><span id="hudScore">0</span></div>
+      <div class="chip"><span class="k">MOVES</span><span id="hudMoves">0</span></div>
+      <button class="icon-btn" id="btnGameSound"></button>
+    </div>
+    <div class="game-wrap">
+      <canvas id="gameCanvas"></canvas>
+      <div class="powerups">
+        <button class="pu" id="puAim" title="Aim Guide"><div class="ic">🎯</div><div>Aim</div><div class="c">Free</div></button>
+        <button class="pu" id="puColor" title="Color Switch"><div class="ic">🎨</div><div>Color</div><div class="c">20</div></button>
+        <button class="pu" id="puBomb" title="Bomb Shot"><div class="ic">💣</div><div>Bomb</div><div class="c">50</div></button>
+        <button class="pu" id="puExtra" title="Extra Moves"><div class="ic">➕</div><div>+3</div><div class="c">80</div></button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-wallet" class="screen">
+    <div class="topbar">
+      <button class="icon-btn" data-back="home">←</button>
+      <h2>Wallet</h2>
+      <div class="spacer"></div>
+    </div>
+    <div class="scroll">
+      <div class="wallet-card real">
+        <div class="lbl">Real Balance (BDT)</div>
+        <div class="val">৳<span id="wReal">0.00</span></div>
+        <div class="muted" style="font-size:11px;margin-top:4px">Withdraw to your bKash account</div>
+      </div>
+      <div class="wallet-card game">
+        <div class="lbl">Game Coins</div>
+        <div class="val">🪙 <span id="wCoins">0</span></div>
+        <div class="muted" style="font-size:11px;margin-top:4px">Virtual in-game points</div>
+      </div>
+      <div class="wallet-actions">
+        <button class="btn green big" id="btnDeposit">↓ Deposit</button>
+        <button class="btn orange big" id="btnWithdraw">↑ Withdraw</button>
+      </div>
+      <div id="pendingNotice"></div>
+      <div class="card">
+        <h3 style="margin-bottom:10px">Transaction History</h3>
+        <div id="txList"></div>
+      </div>
+      <div style="height:40px"></div>
+    </div>
+  </section>
+
+  <section id="screen-deposit" class="screen">
+    <div class="topbar">
+      <button class="icon-btn" data-back="wallet">←</button>
+      <h2>Deposit</h2>
+      <div class="spacer"></div>
+    </div>
+    <div class="scroll">
+      <div class="alert info">
+        <b>How to deposit:</b><br>
+        1. Send exactly <b>৳<span id="depAmountDisplay">200</span></b> to the bKash number below<br>
+        2. Enter your bKash number (sender)<br>
+        3. Enter the Transaction ID<br>
+        4. Submit — balance will be added after Admin verification
+      </div>
+      <div class="card solid">
+        <div class="muted" style="font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600">Send ৳<span id="depAmountDisplay2">200</span> to</div>
+        <div class="bkash-num">01354201395</div>
+        <div class="muted" style="font-size:11px;text-align:center">bKash Personal</div>
+      </div>
+      <div style="height:12px"></div>
+      <div class="card solid">
+        <div class="field">
+          <label>Your bKash Number (Sender)</label>
+          <input class="input" id="depBkash" type="tel" placeholder="01XXXXXXXXX" />
+          <div class="err-msg" id="depBkashErr"></div>
+        </div>
+        <div class="field">
+          <label>Transaction ID</label>
+          <input class="input" id="depTxn" type="text" placeholder="e.g. TRX8A7K2P3" />
+          <div class="err-msg" id="depTxnErr"></div>
+        </div>
+        <button class="btn green big block" id="btnSubmitDeposit">Submit Deposit</button>
+      </div>
+      <div class="alert warn" style="margin-top:12px">
+        <b>Important:</b> Only ৳<span id="depAmountDisplay3">200</span> deposits are accepted. Wrong amount or invalid Transaction ID will result in rejection.
+      </div>
+      <div style="height:40px"></div>
+    </div>
+  </section>
+
+  <section id="screen-withdraw" class="screen">
+    <div class="topbar">
+      <button class="icon-btn" data-back="wallet">←</button>
+      <h2>Withdraw</h2>
+      <div class="spacer"></div>
+    </div>
+    <div class="scroll">
+      <div class="wallet-card real">
+        <div class="lbl">Available Balance</div>
+        <div class="val">৳<span id="wdAvail">0.00</span></div>
+      </div>
+      <div class="card solid">
+        <div class="field">
+          <label>Amount (BDT) — Minimum ৳<span id="minWdDisplay">50</span></label>
+          <input class="input" id="wdAmt" type="number" min="50" step="1" placeholder="Enter amount" />
+          <div class="err-msg" id="wdAmtErr"></div>
+        </div>
+        <div class="field">
+          <label>Your bKash Number</label>
+          <input class="input" id="wdBkash" type="tel" placeholder="01XXXXXXXXX" />
+          <div class="err-msg" id="wdBkashErr"></div>
+        </div>
+        <button class="btn orange big block" id="btnSubmitWithdraw">Request Withdrawal</button>
+      </div>
+      <div style="height:40px"></div>
+    </div>
+  </section>
+
+  <section id="screen-rewards" class="screen">
+    <div class="topbar">
+      <button class="icon-btn" data-back="home">←</button>
+      <h2>Rewards</h2>
+      <div class="spacer"></div>
+    </div>
+    <div class="scroll" id="rewardsList"></div>
+  </section>
+
+  <section id="screen-referral" class="screen">
+    <div class="topbar">
+      <button class="icon-btn" data-back="home">←</button>
+      <h2>Refer & Earn</h2>
+      <div class="spacer"></div>
+    </div>
+    <div class="scroll">
+      <div class="card solid">
+        <div class="muted" style="font-size:13px;line-height:1.6">
+          Share your referral code with friends. When they sign up using your code <b>and deposit ৳<span class="refDepAmt">200</span></b>, you will instantly receive <b>৳<span class="refBonusAmt">50</span></b>. 
+          <br><br>
+          <b>⚠️ Important:</b> Both you and your friend must have deposited for the referral to work and for you to unlock the second withdrawal option. No fake referrals allowed.
+        </div>
+      </div>
+      <div class="ref-code-box">
+        <div class="lbl">Your Referral Code</div>
+        <div class="code" id="myRefCode">------</div>
+        <div class="note">Share this code. No copy button provided for security.</div>
+        <div id="refDepositNote" class="note" style="margin-top:12px; font-size:12px; font-weight:600;"></div>
+      </div>
+      
+      <div class="card solid" style="margin-top: 12px;">
+        <h3 style="margin-bottom:10px">Apply Referral Code</h3>
+        <div class="muted" style="font-size:12px; margin-bottom: 8px;">
+          Forgot to add a code at signup? Enter it here. (The referrer must have already deposited)
+        </div>
+        <div class="field">
+          <input class="input" id="applyRefCode" type="text" placeholder="Enter Referral Code" style="text-transform: uppercase;" />
+          <div class="err-msg" id="applyRefErr"></div>
+        </div>
+        <button class="btn big block" id="btnApplyReferral" style="margin-top: 8px;">Submit Referral Code</button>
+      </div>
+
+      <div class="card solid" style="margin-top: 12px;">
+        <h3 style="margin-bottom:10px">Your Referral Stats</h3>
+        <div class="ref-stat"><span class="muted">Total Invited</span><b id="refTotal">0</b></div>
+        <div class="ref-stat"><span class="muted">Active (Deposited)</span><b id="refActive">0</b></div>
+        <div class="ref-stat"><span class="muted">Total Earned</span><b>৳<span id="refEarn">0</span></b></div>
+      </div>
+      <div style="height:40px"></div>
+    </div>
+  </section>
+
+  <section id="screen-profile" class="screen">
+    <div class="topbar">
+      <button class="icon-btn" data-back="home">←</button>
+      <h2>Profile</h2>
+      <div class="spacer"></div>
+    </div>
+    <div class="scroll">
+      <div class="card solid" style="margin-bottom:12px">
+        <div class="row" style="gap:12px">
+          <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#ff3d8b,#b06bff);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;flex-shrink:0" id="profAvatar">P</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="profEmail">-</div>
+            <div class="muted" style="font-size:12px;margin-top:2px" id="profPhone">-</div>
+            <div class="muted" style="font-size:11px;margin-top:4px">Level <span id="profLv">1</span> • <span id="profXp">0</span> XP</div>
+          </div>
+        </div>
+      </div>
+      <div class="card solid" style="margin-bottom:12px">
+        <h3 style="margin-bottom:10px">Statistics</h3>
+        <div id="statsList"></div>
+      </div>
+      <div style="height:40px"></div>
+    </div>
+  </section>
+
+  <section id="screen-support" class="screen">
+    <div class="topbar">
+      <button class="icon-btn" data-back="home">←</button>
+      <h2>Support</h2>
+      <div class="spacer"></div>
+    </div>
+    <div class="scroll">
+      <div class="card solid" style="margin-bottom:12px">
+        <div class="muted" style="font-size:13px;line-height:1.6">
+          Need help with deposits, withdrawals, gameplay, or account issues? Our support team is available on Telegram.
+        </div>
+      </div>
+      <a class="tg-btn block" style="justify-content:center;text-decoration:none;margin-bottom:12px" href="https://t.me/pupmasterbd" target="_blank" rel="noopener">
+        💬 Message Support on Telegram
+      </a>
+      <div class="card solid">
+        <h3 style="margin-bottom:10px">Common Questions</h3>
+        <div class="muted" style="font-size:13px;line-height:1.7">
+          <b>• How long do withdrawals take?</b><br>
+          5–10 hours after submission.<br><br>
+          <b>• Minimum deposit?</b><br>
+          Exactly ৳<span class="depAmtInline">200</span> to bKash 01354201395.<br><br>
+          <b>• Minimum withdrawal?</b><br>
+          ৳<span class="minWdInline">50</span>.<br><br>
+          <b>• Deposit rejected?</b><br>
+          Contact support with your Transaction ID.
+        </div>
+      </div>
+      <div style="height:40px"></div>
+    </div>
+  </section>
+
+  <section id="screen-settings" class="screen">
+    <div class="topbar">
+      <button class="icon-btn" data-back="home">←</button>
+      <h2>Settings</h2>
+      <div class="spacer"></div>
+    </div>
+    <div class="scroll">
+      <div class="card solid">
+        <div class="switch"><div>🔊 Sound Effects</div><div class="toggle" id="setSound"></div></div>
+        <div class="switch"><div>📳 Vibration</div><div class="toggle" id="setVibrate"></div></div>
+        <div class="switch"><div>🎬 Reduced Motion</div><div class="toggle" id="setMotion"></div></div>
+        <div class="switch"><div>🎯 Show Aim Guide</div><div class="toggle" id="setAim"></div></div>
+      </div>
+      <div class="card solid" style="margin-top:12px">
+        <h3 style="margin-bottom:10px">📖 Tutorial</h3>
+        <div class="muted" style="font-size:13px;line-height:1.6">
+          • Drag from the launcher to aim.<br>
+          • Release to shoot the bubble.<br>
+          • Match 3+ same-color bubbles to pop them.<br>
+          • Disconnected bubbles fall for bonus points.<br>
+          • Use power-ups wisely to clear tough levels.
+        </div>
+      </div>
+      <div class="card solid" style="margin-top:12px">
+        <button class="btn block" id="btnReset" style="background:linear-gradient(180deg,#ff6b6b,#c92a2a)"> Reset Game Progress</button>
+        <div class="muted" style="font-size:11px;margin-top:6px;text-align:center">Resets levels, coins, stats. Account & balance preserved.</div>
+      </div>
+      <div style="height:40px"></div>
+    </div>
+  </section>
+
+  <div class="overlay" id="ovPause">
+    <div class="modal">
+      <h2>⏸ Paused</h2>
+      <div class="actions">
+        <button class="btn big" id="btnResume">▶ Resume</button>
+        <button class="btn ghost" id="btnRestart">🔄 Restart Level</button>
+        <button class="btn ghost" id="btnToLevels">🗺️ Level Selection</button>
+        <button class="btn ghost" id="btnHomeFromPause">🏠 Home</button>
+      </div>
+    </div>
+  </div>
+  <div class="overlay" id="ovWin">
+    <div class="modal">
+      <h2 id="winTitle">Level Complete!</h2>
+      <div class="stars-big" id="winStars"></div>
+      <div class="big-score" id="winScore">0</div>
+      <div class="muted" style="font-size:13px;margin-bottom:8px" id="winSub">Great job!</div>
+      <div style="text-align:left">
+        <div class="stat-row"><span>Bubbles Popped</span><span id="winPopped">0</span></div>
+        <div class="stat-row"><span>Shots Used</span><span id="winShots">0</span></div>
+        <div class="stat-row"><span>Fallen Bonus</span><span id="winFallen">0</span></div>
+        <div class="stat-row"><span>Combo Bonus</span><span id="winCombo">0</span></div>
+        <div class="stat-row"><span>Coins Earned</span><span id="winCoins">0</span></div>
+        <div class="stat-row" id="earningRow" style="display:none"><span>💵 Real Earning</span><span id="winEarning" style="color:var(--green);font-weight:700">0</span></div>
+      </div>
+      <div class="actions">
+        <button class="btn big green" id="btnNext">▶ Next Level</button>
+        <button class="btn ghost" id="btnReplay">🔄 Replay</button>
+        <button class="btn ghost" id="btnWinLevels">🗺️ Level Selection</button>
+      </div>
+    </div>
+  </div>
+  <div class="overlay" id="ovFail">
+    <div class="modal">
+      <h2> Level Failed</h2>
+      <div class="muted" style="margin:8px 0" id="failMsg">You ran out of moves.</div>
+      <div style="text-align:left">
+        <div class="stat-row"><span>Score</span><span id="failScore">0</span></div>
+        <div class="stat-row"><span>Target</span><span id="failTarget">0</span></div>
+      </div>
+      <div class="actions">
+        <button class="btn big" id="btnRetry">🔄 Retry Level</button>
+        <button class="btn ghost" id="btnFailLevels">🗺️ Level Selection</button>
+      </div>
+    </div>
+  </div>
+  <div class="overlay" id="ovConfirm">
+    <div class="modal">
+      <h2 id="cfTitle">Confirm</h2>
+      <div class="muted" id="cfMsg" style="margin:8px 0"></div>
+      <div class="actions">
+        <button class="btn" id="cfOk">Confirm</button>
+        <button class="btn ghost" id="cfCancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, increment, serverTimestamp, query, where, getDocs, addDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBSi8deSGIiziKdJHvMtZBx1ILUs4Qjj7k",
+  authDomain: "pupmaster-a1514.firebaseapp.com",
+  projectId: "pupmaster-a1514",
+  storageBucket: "pupmaster-a1514.firebasestorage.app",
+  messagingSenderId: "902021003366",
+  appId: "1:902021003366:web:b1b0c337413a2f9ce7d5a7",
+  measurementId: "G-DN85VPDBZG"
+};
+
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+let currentUserData = null;
+
+// ✅ Admin Settings - loaded from Firestore
+let appSettings = {
+  depositAmount: 200,
+  minWithdrawal: 50,
+  referralBonus: 50,
+  earningPerMatch: 5,
+  dailyGameLimit: 0,
+  gameEarningsEnabled: true,
+  maintenanceMode: false
+};
+
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const rand = (a,b) => a + Math.random()*(b-a);
+const choice = a => a[Math.floor(Math.random()*a.length)];
+
+function toast(msg, t=1800){
+  const el = $('#toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>el.classList.remove('show'), t);
+}
+
+function showErr(id, msg){
+  const el = $('#'+id);
+  if(!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  const input = el.previousElementSibling;
+  if(input && input.classList) input.classList.add('err');
+}
+function clearErr(id){
+  const el = $('#'+id);
+  if(!el) return;
+  el.textContent = '';
+  el.classList.remove('show');
+  const input = el.previousElementSibling;
+  if(input && input.classList) input.classList.remove('err');
+}
+function clearAllErr(...ids){ ids.forEach(clearErr); }
+
+function generateRefCode(email) {
+  let hash = 0;
+  for (let i = 0; i < email.length; i++) {
+    hash = ((hash << 5) - hash) + email.charCodeAt(i);
+    hash |= 0;
+  }
+  const base = Math.abs(hash).toString(36).toUpperCase().slice(0, 4).padEnd(4, 'X');
+  const rnd = Math.random().toString(36).toUpperCase().slice(2, 6);
+  return (base + rnd).slice(0, 8);
+}
+
+// ✅ Load settings from Firestore
+async function loadAppSettings() {
+  try {
+    const settingsDoc = await getDoc(doc(db, "config", "appSettings"));
+    if (settingsDoc.exists()) {
+      appSettings = { ...appSettings, ...settingsDoc.data() };
+    }
+    // Apply settings to UI
+    applySettingsToUI();
+  } catch (e) {
+    console.error("Settings load error:", e);
+  }
+}
+
+// ✅ Apply settings to all UI elements
+function applySettingsToUI() {
+  // Deposit amount displays
+  $$('.depAmtInline, #depAmountDisplay, #depAmountDisplay2, #depAmountDisplay3').forEach(el => {
+    if (el) el.textContent = appSettings.depositAmount;
+  });
+  // Min withdrawal
+  $$('.minWdInline, #minWdDisplay').forEach(el => {
+    if (el) el.textContent = appSettings.minWithdrawal;
+  });
+  // Referral
+  $$('.refDepAmt').forEach(el => { if (el) el.textContent = appSettings.depositAmount; });
+  $$('.refBonusAmt').forEach(el => { if (el) el.textContent = appSettings.referralBonus; });
+  
+  // Maintenance banner
+  const banner = $('#maintenanceBanner');
+  if (banner) {
+    banner.style.display = appSettings.maintenanceMode ? 'flex' : 'none';
+  }
+  
+  // Play button
+  const playBtn = $('#btnPlay');
+  if (playBtn) {
+    if (appSettings.maintenanceMode) {
+      playBtn.disabled = true;
+      playBtn.textContent = '🚧 Maintenance Mode';
+    } else {
+      playBtn.disabled = false;
+      playBtn.textContent = '▶ PLAY NOW';
+    }
+  }
+}
+
+function showScreen(id){
+  $$('.screen').forEach(s=>s.classList.remove('active'));
+  const el = $('#screen-'+id);
+  if(el) el.classList.add('active');
+  $$('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.nav===id));
+  if(id==='home') refreshHome();
+  if(id==='levels') renderLevels();
+  if(id==='wallet') renderWallet();
+  if(id==='profile') renderProfile();
+  if(id==='settings') renderSettings();
+  if(id==='rewards') renderRewards();
+  if(id==='referral') renderReferral();
+  if(id==='deposit') renderDeposit();
+  if(id==='withdraw') renderWithdraw();
+}
+
+document.addEventListener('click', e => {
+  const nav = e.target.closest('[data-nav]');
+  if(nav){ Audio.click(); showScreen(nav.dataset.nav); return; }
+  const back = e.target.closest('[data-back]');
+  if(back){ Audio.click(); showScreen(back.dataset.back); return; }
+});
+
+// ✅ Auth with block check
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    try {
+      await loadAppSettings();
+      const docRef = doc(db, "users", user.email);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const userData = docSnap.data();
+        if (userData.blocked) {
+          await signOut(auth);
+          alert(' আপনার অ্যাকাউন্ট ব্লক করা হয়েছে। বিস্তারিত জানতে সাপোর্টে যোগাযোগ করুন।');
+          showScreen('login');
+          return;
+        }
+        currentUserData = { uid: user.uid, ...userData };
+        if ($('#screen-login').classList.contains('active') || $('#screen-signup').classList.contains('active')) {
+          showScreen('home');
+        }
+      } else {
+        await signOut(auth);
+        showScreen('login');
+      }
+    } catch (e) {
+      console.error("Auth state error:", e);
+      showScreen('login');
+    }
+  } else {
+    currentUserData = null;
+    showScreen('login');
+  }
+});
+
+function validateEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+function validateBDPhone(p){ return /^01[3-9]\d{8}$/.test(p); }
+
+$('#btnGoSignup').onclick = () => showScreen('signup');
+$('#btnGoLogin').onclick = () => showScreen('login');
+$('#btnForgot').onclick = () => showScreen('forgot');
+$('#btnForgotBack').onclick = () => showScreen('login');
+
+$('#btnLogin').onclick = async () => {
+  clearAllErr('loginEmailErr','loginPassErr');
+  const email = $('#loginEmail').value.trim().toLowerCase();
+  const pass = $('#loginPass').value;
+  if(!email){ showErr('loginEmailErr','Email required'); return; }
+  if(!validateEmail(email)){ showErr('loginEmailErr','Invalid email format'); return; }
+  if(!pass){ showErr('loginPassErr','Password required'); return; }
+  const btn = $('#btnLogin');
+  const originalText = btn.textContent;
+  btn.textContent = 'Logging in...';
+  btn.disabled = true;
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+    const user = userCredential.user;
+    const docRef = doc(db, "users", user.email);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const userData = docSnap.data();
+      if (userData.blocked) {
+        await signOut(auth);
+        alert('🔒 আপনার অ্যাকাউন্ট ব্লক করা হয়েছে।');
+        showScreen('login');
+        return;
+      }
+      currentUserData = { uid: user.uid, ...userData };
+      toast("Login successful!");
+      Audio.init();
+      Audio.click();
+      showScreen('home');
+    } else {
+      showErr('loginPassErr', 'User data not found.');
+      await signOut(auth);
+    }
+  } catch (error) {
+    console.error("Login error:", error);
+    if(error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+      showErr('loginPassErr', 'Invalid email or password');
+    } else if (error.code === 'auth/too-many-requests') {
+      showErr('loginPassErr', 'Too many failed attempts. Try again later.');
+    } else {
+      showErr('loginPassErr', error.message || 'Login failed');
+    }
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+};
+
+$('#btnSignup').onclick = async () => {
+  clearAllErr('suEmailErr','suPhoneErr','suRefErr','suPassErr');
+  const email = $('#suEmail').value.trim().toLowerCase();
+  const phone = $('#suPhone').value.trim();
+  const refCodeInput = $('#suRef').value.trim().toUpperCase();
+  const pass = $('#suPass').value;
+  if(!email){ showErr('suEmailErr','Email required'); return; }
+  if(!validateEmail(email)){ showErr('suEmailErr','Invalid email format'); return; }
+  if(!phone){ showErr('suPhoneErr','Phone required'); return; }
+  if(!validateBDPhone(phone)){ showErr('suPhoneErr','Invalid BD phone (01XXXXXXXXX)'); return; }
+  if(!pass || pass.length < 6){ showErr('suPassErr','Password must be 6+ characters'); return; }
+
+  let referredBy = null;
+  if (refCodeInput) {
+    const q = query(collection(db, "users"), where("refCode", "==", refCodeInput));
+    const querySnapshot = await getDocs(q);
+    if (querySnapshot.empty) {
+      showErr('suRefErr','Invalid referral code'); return;
+    }
+    const referrerDoc = querySnapshot.docs[0];
+    referredBy = referrerDoc.id;
+    const referrerData = referrerDoc.data();
+    if (referredBy === email) {
+      showErr('suRefErr','Cannot use your own code'); return;
+    }
+    if (!referrerData.deposited) {
+      showErr('suRefErr', 'এই রেফারার এখনও ডিপোজিট করেননি। রেফারেল কোডটি বর্তমানে কাজ করবে না।');
+      return;
+    }
+  }
+
+  const btn = $('#btnSignup');
+  const originalText = btn.textContent;
+  btn.textContent = 'Creating Account...';
+  btn.disabled = true;
+
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+    const user = userCredential.user;
+    const newRefCode = generateRefCode(email);
+    await setDoc(doc(db, "users", email), {
+      email: email,
+      phone: phone,
+      refCode: newRefCode,
+      referredBy: referredBy,
+      realBalance: 0,
+      coins: 200,
+      deposited: false,
+      depositCount: 0,
+      withdrawalCount: 0,
+      activeReferrals: 0,
+      referralEarnings: 0,
+      blocked: false,
+      gameStats: { levelsCompleted: 0, bestScore: 0, popped: 0, shots: 0, stars: 0, gamesPlayed: 0 },
+      completedLevels: {},
+      unlocked: 1,
+      settings: { sound: true, vibrate: true, reducedMotion: false, aimGuide: true },
+      createdAt: serverTimestamp()
+    });
+    if (referredBy) {
+      const refDoc = doc(db, "users", referredBy);
+      await updateDoc(refDoc, { referrals: arrayUnion(email) });
+    }
+    currentUserData = { 
+      uid: user.uid, email, phone, refCode: newRefCode, referredBy,
+      realBalance: 0, coins: 200, deposited: false, depositCount: 0, withdrawalCount: 0,
+      activeReferrals: 0, referralEarnings: 0, blocked: false,
+      gameStats: { levelsCompleted: 0, bestScore: 0, popped: 0, shots: 0, stars: 0, gamesPlayed: 0 },
+      completedLevels: {}, unlocked: 1,
+      settings: { sound: true, vibrate: true, reducedMotion: false, aimGuide: true }
+    };
+    toast("Account created & logged in successfully!");
+    Audio.init();
+    Audio.reward();
+    showScreen('home');
+  } catch (error) {
+    console.error("Signup error:", error);
+    if(error.code === 'auth/email-already-in-use') {
+      showErr('suEmailErr', 'This email is already registered');
+    } else {
+      showErr('suEmailErr', error.message || 'Signup failed');
+    }
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+};
+
+$('#btnLogout').onclick = () => {
+  $('#cfTitle').textContent = 'Log Out?';
+  $('#cfMsg').textContent = 'You will need to log in again to access your account.';
+  $('#cfOk').onclick = async () => {
+    await signOut(auth);
+    hideOverlay('ovConfirm');
+    toast('Logged out');
+  };
+  $('#cfCancel').onclick = () => hideOverlay('ovConfirm');
+  showOverlay('ovConfirm');
+};
+
+function refreshHome(){
+  if(!currentUserData) return;
+  const u = currentUserData;
+  $('#homeCoins').textContent = u.coins;
+  $('#homeReal').textContent = u.realBalance.toFixed(2);
+  $('#balCoins').textContent = u.coins;
+  $('#balReal').textContent = u.realBalance.toFixed(2);
+  $('#btnSound').textContent = u.settings?.sound !== false ? '🔊' : '🔇';
+}
+
+function initBgBubbles(){
+  const host = $('#bgBubbles');
+  host.innerHTML = '';
+  const colors = ['#ff3d8b','#3ee7ff','#ffd23f','#ff8a3d','#6ee36a','#b06bff'];
+  for(let i=0;i<12;i++){
+    const s = document.createElement('span');
+    const size = rand(20,60);
+    s.style.width = size+'px';
+    s.style.height = size+'px';
+    s.style.left = rand(0,100)+'%';
+    s.style.top = rand(0,100)+'%';
+    s.style.background = `radial-gradient(circle at 30% 30%, #fff, ${choice(colors)} 60%, transparent 70%)`;
+    s.style.opacity = rand(0.15,0.35);
+    s.style.animationDelay = rand(0,10)+'s';
+    s.style.animationDuration = rand(12,22)+'s';
+    host.appendChild(s);
+  }
+}
+initBgBubbles();
+
+const LEVELS = [
+  { id:1, name:'First Pop', rows:3, colors:['#ff3d8b','#3ee7ff'], moves:15, stars:[80,160,260], pattern:'simple' },
+  { id:2, name:'Color Match', rows:4, colors:['#ff3d8b','#3ee7ff','#ffd23f'], moves:18, stars:[150,300,500], pattern:'full' },
+  { id:3, name:'Cluster Breaker', rows:5, colors:['#ff3d8b','#3ee7ff','#ffd23f'], moves:22, stars:[300,600,1000], pattern:'dense' },
+  { id:4, name:'Sidewall Shooter', rows:4, colors:['#ff3d8b','#3ee7ff','#ffd23f','#ff8a3d'], moves:20, stars:[350,700,1100], pattern:'sides' },
+  { id:5, name:'Falling Bubbles', rows:5, colors:['#ff3d8b','#3ee7ff','#ffd23f','#ff8a3d'], moves:22, stars:[500,1000,1600], pattern:'tower' },
+  { id:6, name:'Limited Shots', rows:4, colors:['#ff3d8b','#3ee7ff','#ffd23f'], moves:12, stars:[400,800,1300], pattern:'tricky' },
+  { id:7, name:'Rainbow Challenge', rows:5, colors:['#ff3d8b','#3ee7ff','#ffd23f','#ff8a3d'], moves:22, stars:[600,1200,2000], pattern:'rainbow', special:'rainbow' },
+  { id:8, name:'Tricky Formation', rows:6, colors:['#ff3d8b','#3ee7ff','#ffd23f','#ff8a3d','#6ee36a'], moves:25, stars:[800,1600,2600], pattern:'separated' },
+  { id:9, name:'Expert Pop', rows:6, colors:['#ff3d8b','#3ee7ff','#ffd23f','#ff8a3d','#6ee36a'], moves:20, stars:[1200,2400,4000], pattern:'expert' },
+  { id:10, name:'Bubble Master', rows:7, colors:['#ff3d8b','#3ee7ff','#ffd23f','#ff8a3d','#6ee36a','#b06bff'], moves:28, stars:[2000,4000,7000], pattern:'boss', special:'boss' }
+];
+
+function renderLevels(){
+  if(!currentUserData) return;
+  const grid = $('#levelGrid');
+  grid.innerHTML = '';
+  LEVELS.forEach((lv, idx) => {
+    const u = currentUserData;
+    const unlocked = idx+1 <= u.unlocked;
+    const done = !!u.completedLevels[idx+1];
+    const best = u.completedLevels[idx+1];
+    const stars = best ? best.stars : 0;
+    const perfect = stars === 3;
+    const card = document.createElement('button');
+    card.className = 'level-card' + (!unlocked?' locked':'') + (done?' done':'') + (perfect?' perfect':'');
+    card.innerHTML = `
+      <div>
+        <div class="num">${lv.id}</div>
+        <div class="name">${lv.name}</div>
+        <div class="muted" style="font-size:11px;margin-top:2px">${lv.moves} moves</div>
+      </div>
+      <div>
+        <div class="stars">${[1,2,3].map(n=>`<span class="${n<=stars?'':'off'}">⭐</span>`).join('')}</div>
+        ${done?`<div class="muted" style="font-size:11px;margin-top:4px">Best: ${best.score}</div>`:''}
+      </div>
+      ${!unlocked?'<div class="lock">🔒</div>':''}
+    `;
+    if(unlocked){
+      card.addEventListener('click', () => { Audio.click(); startLevel(idx+1); });
+    } else {
+      card.addEventListener('click', () => toast('Complete previous level first'));
+    }
+    grid.appendChild(card);
+  });
+  $('#lvBest').textContent = currentUserData.gameStats?.bestScore || 0;
+}
+
+const Audio = (() => {
+  let ctx = null;
+  function ensure(){
+    if(!ctx){ try{ ctx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){} }
+    if(ctx && ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+  function tone(freq=440, dur=0.12, type='sine', vol=0.15, slide=0){
+    const u = currentUserData;
+    if(!u || u.settings?.sound === false) return;
+    const c = ensure(); if(!c) return;
+    const o = c.createOscillator();
+    const g = c.createGain();
+    o.type = type; o.frequency.value = freq;
+    if(slide) o.frequency.exponentialRampToValueAtTime(Math.max(40,freq+slide), c.currentTime+dur);
+    g.gain.value = 0;
+    g.gain.linearRampToValueAtTime(vol, c.currentTime+0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime+dur);
+    o.connect(g).connect(c.destination);
+    o.start(); o.stop(c.currentTime+dur+0.02);
+  }
+  return {
+    init: ensure,
+    pop: () => tone(700+Math.random()*200, 0.08, 'square', 0.1, -300),
+    shoot: () => tone(500, 0.08, 'triangle', 0.12, 200),
+    attach: () => tone(300, 0.05, 'sine', 0.08),
+    fall: () => tone(200, 0.2, 'sawtooth', 0.1, -100),
+    combo: () => { tone(800,0.08,'square',0.12); setTimeout(()=>tone(1000,0.08,'square',0.12),70); },
+    bomb: () => tone(120, 0.4, 'sawtooth', 0.18, -60),
+    win: () => { [523,659,784,1046].forEach((f,i)=>setTimeout(()=>tone(f,0.18,'triangle',0.15),i*110)); },
+    fail: () => { [400,300,200].forEach((f,i)=>setTimeout(()=>tone(f,0.2,'sawtooth',0.12),i*140)); },
+    click: () => tone(600, 0.04, 'square', 0.06),
+    reward: () => { tone(880,0.1,'triangle',0.12); setTimeout(()=>tone(1320,0.15,'triangle',0.12),80); }
+  };
+})();
+
+function vibrate(ms=15){
+  const u = currentUserData;
+  if(u && u.settings?.vibrate !== false && navigator.vibrate) try{navigator.vibrate(ms)}catch(e){}
+}
+
+const Game = (() => {
+  const canvas = $('#gameCanvas');
+  const ctx = canvas.getContext('2d');
+  let W=0, H=0, DPR=1;
+  let R = 22;
+  const COLS = 9;
+  let ROW_H;
+  let grid = [];
+  let currentColor = null;
+  let nextColor = null;
+  let launcher = { x:0, y:0, angle: -Math.PI/2 };
+  let projectile = null;
+  let particles = [];
+  let fallingBubbles = [];
+  let scorePopups = [];
+  let state = 'idle';
+  let levelCfg = null;
+  let levelIdx = 0;
+  let score = 0;
+  let movesLeft = 0;
+  let poppedCount = 0;
+  let shotsUsed = 0;
+  let fallenBonus = 0;
+  let comboBonus = 0;
+  let comboStreak = 0;
+  let aimGuideActive = true;
+  let bombMode = false;
+  let pointer = {x:0,y:0,down:false};
+  let lastTime = 0;
+  let animId = 0;
+
+  function resize(){
+    const rect = canvas.getBoundingClientRect();
+    DPR = Math.min(window.devicePixelRatio||1, 2);
+    W = rect.width; H = rect.height;
+    canvas.width = W * DPR; canvas.height = H * DPR;
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    R = Math.max(14, Math.min(26, Math.floor((W-20) / (COLS*2 + 1))));
+    ROW_H = R * Math.sqrt(3);
+    launcher.x = W/2;
+    launcher.y = H - 70;
+  }
+
+  function colsInRow(r){ return (r % 2 === 0) ? COLS : COLS - 1; }
+  function cellCenter(r, c){
+    const offset = (r % 2 === 1) ? R : 0;
+    return { x: R + c * (R*2) + offset, y: R + 10 + r * ROW_H };
+  }
+  function findNearestEmpty(px, py){
+    let best = null, bestD = Infinity;
+    for(let r=0; r<grid.length; r++){
+      const cc = colsInRow(r);
+      for(let c=0; c<cc; c++){
+        if(grid[r][c]) continue;
+        const p = cellCenter(r,c);
+        const d = (p.x-px)**2 + (p.y-py)**2;
+        if(d < bestD){ bestD = d; best = {r,c}; }
+      }
+    }
+    return best;
+  }
+  function neighbors(r,c){
+    const even = r%2===0;
+    const list = [
+      [r, c-1], [r, c+1],
+      [r-1, even ? c-1 : c], [r-1, even ? c : c+1],
+      [r+1, even ? c-1 : c], [r+1, even ? c : c+1]
+    ];
+    return list.filter(([rr,cc])=> rr>=0 && rr<grid.length && cc>=0 && cc<colsInRow(rr));
+  }
+
+  function rebuildGridWithColors(){
+    grid = [];
+    const totalRows = levelCfg.rows + 4;
+    for(let r=0; r<totalRows; r++){
+      const row = [];
+      const cc = colsInRow(r);
+      for(let c=0; c<cc; c++){
+        let cell = null;
+        if(r < levelCfg.rows){
+          let fill = true;
+          switch(levelCfg.pattern){
+            case 'simple': fill = r<2 && (r+c)%2===0; break;
+            case 'full': fill = Math.random()<0.75; break;
+            case 'dense': fill = Math.random()<0.85; break;
+            case 'sides': fill = (c===0 || c===cc-1 || r===0) && Math.random()<0.8; break;
+            case 'tower': fill = (c>=2 && c<=cc-3) ? Math.random()<0.7 : Math.random()<0.3; break;
+            case 'tricky': fill = Math.random()<0.65; break;
+            case 'rainbow':
+              if(r===0 && c===Math.floor(cc/2)) { cell = {color:null, special:'rainbow'}; row.push(cell); continue; }
+              fill = Math.random()<0.8; break;
+            case 'separated': fill = (r%2===0 && c%3===0) ? Math.random()<0.9 : Math.random()<0.4; break;
+            case 'expert': fill = Math.random()<0.82; break;
+            case 'boss':
+              const cx = (cc-1)/2, cy = (levelCfg.rows-1)/2;
+              const d = Math.hypot(c-cx, (r-cy)*1.3);
+              fill = d < Math.max(cc,levelCfg.rows)/2 && Math.random()<0.9; break;
+            default: fill = Math.random()<0.7;
+          }
+          if(fill){
+            cell = { color: choice(levelCfg.colors), special:null };
+            if(levelCfg.pattern==='boss' && Math.random()<0.08) cell.special = 'bonus';
+          }
+        }
+        row.push(cell);
+      }
+      grid.push(row);
+    }
+  }
+
+  function pickLauncherColor(){
+    const present = new Set();
+    for(let r=0;r<grid.length;r++)for(let c=0;c<colsInRow(r);c++){
+      const b = grid[r][c];
+      if(b && b.color) present.add(b.color);
+    }
+    const arr = Array.from(present);
+    if(arr.length===0) return choice(levelCfg.colors);
+    return choice(arr);
+  }
+
+  function initLevel(idx){
+    levelIdx = idx;
+    levelCfg = LEVELS[idx-1];
+    score = 0; movesLeft = levelCfg.moves; poppedCount = 0; shotsUsed = 0; fallenBonus = 0; comboBonus = 0; comboStreak = 0;
+    particles = []; fallingBubbles = []; scorePopups = [];
+    projectile = null; bombMode = false;
+    resize();
+    rebuildGridWithColors();
+    currentColor = pickLauncherColor();
+    nextColor = pickLauncherColor();
+    state = 'idle';
+    aimGuideActive = currentUserData?.settings?.aimGuide !== false;
+    updateHUD();
+    $('#hudLevel').textContent = levelIdx;
+    if(levelCfg.special === 'boss') toast('🏆 Bubble Master — Final Challenge!');
+  }
+
+  function updateHUD(){
+    $('#hudScore').textContent = score;
+    $('#hudMoves').textContent = movesLeft;
+  }
+
+  function shade(hex, amt){
+    const c = hex.replace('#','');
+    const r = parseInt(c.substr(0,2),16), g = parseInt(c.substr(2,2),16), b = parseInt(c.substr(4,2),16);
+    const f = (v) => clamp(Math.round(v + v*amt), 0, 255);
+    return `rgb(${f(r)},${f(g)},${f(b)})`;
+  }
+
+  function drawBubble(x, y, r, color, opts={}){
+    if(!color){
+      const grad = ctx.createRadialGradient(x-r*0.3, y-r*0.3, r*0.1, x, y, r);
+      grad.addColorStop(0,'#fff');
+      grad.addColorStop(0.3,'#ffd23f');
+      grad.addColorStop(0.55,'#ff3d8b');
+      grad.addColorStop(0.8,'#3ee7ff');
+      grad.addColorStop(1,'#b06bff');
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.beginPath(); ctx.arc(x-r*0.35, y-r*0.35, r*0.15, 0, Math.PI*2); ctx.fill();
+      return;
+    }
+    const grad = ctx.createRadialGradient(x-r*0.35, y-r*0.4, r*0.1, x, y, r);
+    grad.addColorStop(0,'#ffffff');
+    grad.addColorStop(0.25, color);
+    grad.addColorStop(1, shade(color, -0.35));
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.beginPath(); ctx.ellipse(x-r*0.35, y-r*0.4, r*0.28, r*0.18, -0.5, 0, Math.PI*2); ctx.fill();
+    if(opts.special === 'bonus'){
+      ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.font = `bold ${r*0.8}px Outfit`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('★', x, y+1);
+    }
+  }
+
+  function drawGrid(){
+    for(let r=0; r<grid.length; r++){
+      for(let c=0; c<colsInRow(r); c++){
+        const b = grid[r][c];
+        if(!b) continue;
+        const p = cellCenter(r,c);
+        drawBubble(p.x, p.y, R-1, b.color, {special:b.special});
+      }
+    }
+  }
+
+  function drawLauncher(){
+    ctx.save();
+    const grd = ctx.createRadialGradient(launcher.x, launcher.y+10, 5, launcher.x, launcher.y+10, 60);
+    grd.addColorStop(0,'rgba(176,107,255,0.5)');
+    grd.addColorStop(1,'rgba(176,107,255,0)');
+    ctx.fillStyle = grd;
+    ctx.beginPath(); ctx.arc(launcher.x, launcher.y+10, 60, 0, Math.PI*2); ctx.fill();
+    ctx.translate(launcher.x, launcher.y);
+    ctx.rotate(launcher.angle + Math.PI/2);
+    const cgrd = ctx.createLinearGradient(-14,0,14,0);
+    cgrd.addColorStop(0,'#3a1578'); cgrd.addColorStop(0.5,'#b06bff'); cgrd.addColorStop(1,'#3a1578');
+    ctx.fillStyle = cgrd;
+    ctx.beginPath();
+    ctx.moveTo(-16, 10); ctx.lineTo(-10, -30); ctx.lineTo(10, -30); ctx.lineTo(16, 10); ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+    drawBubble(launcher.x, launcher.y, R-1, bombMode ? null : currentColor, {special: bombMode?'bomb':null});
+    ctx.save();
+    ctx.globalAlpha = 0.9;
+    drawBubble(launcher.x - 70, launcher.y + 20, R*0.7, nextColor, {});
+    ctx.restore();
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.font = '10px Outfit';
+    ctx.textAlign = 'center';
+    ctx.fillText('NEXT', launcher.x - 70, launcher.y + 40);
+  }
+
+  function drawAim(){
+    if(state !== 'idle' && state !== 'aiming') return;
+    if(!aimGuideActive && state !== 'aiming') return;
+    const dx = Math.cos(launcher.angle);
+    const dy = Math.sin(launcher.angle);
+    let x = launcher.x, y = launcher.y;
+    let vx = dx, vy = dy;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.setLineDash([4,6]);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    const steps = 80;
+    for(let i=0;i<steps;i++){
+      x += vx * 8; y += vy * 8;
+      if(x < R){ x = R; vx = -vx; }
+      if(x > W - R){ x = W - R; vx = -vx; }
+      if(y < R + 10) break;
+      let hit = false;
+      for(let r=0;r<grid.length && !hit;r++){
+        for(let c=0;c<colsInRow(r);c++){
+          if(!grid[r][c]) continue;
+          const p = cellCenter(r,c);
+          const d = Math.hypot(p.x-x, p.y-y);
+          if(d < R*2 - 2){ hit = true; break; }
+        }
+      }
+      ctx.lineTo(x,y);
+      if(hit) break;
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawProjectile(){
+    if(!projectile) return;
+    drawBubble(projectile.x, projectile.y, R-1, projectile.color, {special: projectile.special});
+  }
+
+  function drawParticles(){
+    for(const p of particles){
+      ctx.save();
+      ctx.globalAlpha = p.life;
+      ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+    }
+    for(const f of fallingBubbles){
+      ctx.save();
+      ctx.globalAlpha = f.life;
+      drawBubble(f.x, f.y, R-1, f.color, {});
+      ctx.restore();
+    }
+    for(const s of scorePopups){
+      ctx.save();
+      ctx.globalAlpha = s.life;
+      ctx.fillStyle = '#fff';
+      ctx.font = `bold ${16 + s.size}px Outfit`;
+      ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 6;
+      ctx.fillText(s.text, s.x, s.y);
+      ctx.restore();
+    }
+  }
+
+  function drawCeiling(){
+    const grd = ctx.createLinearGradient(0,0,0,20);
+    grd.addColorStop(0,'rgba(176,107,255,0.4)');
+    grd.addColorStop(1,'rgba(176,107,255,0)');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0,0,W,20);
+  }
+
+  function render(){
+    ctx.clearRect(0,0,W,H);
+    drawCeiling();
+    drawGrid();
+    drawAim();
+    drawProjectile();
+    drawLauncher();
+    drawParticles();
+  }
+
+  function update(dt){
+    for(let i=particles.length-1;i>=0;i--){
+      const p = particles[i];
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      p.vy += 400 * dt;
+      p.life -= dt * 1.2;
+      if(p.life <= 0) particles.splice(i,1);
+    }
+    for(let i=fallingBubbles.length-1;i>=0;i--){
+      const f = fallingBubbles[i];
+      f.x += f.vx * dt; f.y += f.vy * dt;
+      f.vy += 800 * dt;
+      f.life -= dt * 0.8;
+      if(f.life <= 0 || f.y > H + 50) fallingBubbles.splice(i,1);
+    }
+    for(let i=scorePopups.length-1;i>=0;i--){
+      const s = scorePopups[i];
+      s.y -= 30 * dt;
+      s.life -= dt * 1.1;
+      if(s.life <= 0) scorePopups.splice(i,1);
+    }
+
+    if(state === 'shooting' && projectile){
+      const speed = 900;
+      projectile.x += projectile.vx * speed * dt;
+      projectile.y += projectile.vy * speed * dt;
+      if(projectile.x < R){ projectile.x = R; projectile.vx = -projectile.vx; Audio.attach(); }
+      if(projectile.x > W - R){ projectile.x = W - R; projectile.vx = -projectile.vx; Audio.attach(); }
+      if(projectile.y < R + 10){ snapProjectile(); return; }
+      for(let r=0;r<grid.length;r++){
+        for(let c=0;c<colsInRow(r);c++){
+          const b = grid[r][c]; if(!b) continue;
+          const p = cellCenter(r,c);
+          const d = Math.hypot(p.x - projectile.x, p.y - projectile.y);
+          if(d < R*2 - 2){ snapProjectile(); return; }
+        }
+      }
+      if(projectile.y > H){ projectile = null; state = 'idle'; }
+    }
+  }
+
+  function snapProjectile(){
+    const p = projectile;
+    const target = findNearestEmpty(p.x, p.y);
+    if(!target){ projectile = null; state = 'idle'; return; }
+    const {r,c} = target;
+    const cell = { color: p.color, special: p.special || null };
+    grid[r][c] = cell;
+    projectile = null;
+    Audio.attach();
+    vibrate(10);
+
+    if(cell.special === 'bomb'){
+      explodeBomb(r,c);
+    } else {
+      const group = findGroup(r,c, cell.color, cell.special);
+      if(group.length >= 3){
+        comboStreak++;
+        const base = group.length * 10;
+        const comboAdd = comboStreak > 1 ? (comboStreak-1) * 15 : 0;
+        const gained = base + comboAdd;
+        comboBonus += comboAdd;
+        popGroup(group, gained);
+        const floating = findFloating();
+        dropFloating(floating);
+        if(comboStreak > 1) Audio.combo();
+      } else {
+        comboStreak = 0;
+      }
+    }
+
+    currentColor = nextColor;
+    nextColor = pickLauncherColor();
+    bombMode = false;
+    updatePowerups();
+
+    setTimeout(()=>{
+      checkEndConditions();
+      state = 'idle';
+    }, 250);
+  }
+
+  function findGroup(r,c,color,special){
+    if(special === 'rainbow'){
+      const neigh = neighbors(r,c);
+      const counts = {};
+      for(const [nr,nc] of neigh){
+        const b = grid[nr][nc];
+        if(b && b.color){ counts[b.color] = (counts[b.color]||0)+1; }
+      }
+      const keys = Object.keys(counts);
+      if(keys.length === 0) return [[r,c]];
+      keys.sort((a,b)=>counts[b]-counts[a]);
+      const matchColor = keys[0];
+      return bfsMatch(r,c, matchColor, true);
+    }
+    return bfsMatch(r,c,color,false);
+  }
+  function bfsMatch(r,c,color,rainbowAsMatch){
+    const visited = new Set();
+    const stack = [[r,c]];
+    const out = [];
+    while(stack.length){
+      const [rr,cc] = stack.pop();
+      const k = rr+','+cc;
+      if(visited.has(k)) continue;
+      visited.add(k);
+      const b = grid[rr][cc];
+      if(!b) continue;
+      let matches = false;
+      if(b.color === color) matches = true;
+      else if(rainbowAsMatch && b.special === 'rainbow') matches = true;
+      if(!matches) continue;
+      out.push([rr,cc]);
+      for(const n of neighbors(rr,cc)) stack.push(n);
+    }
+    return out;
+  }
+
+  function popGroup(group, gained){
+    score += gained;
+    poppedCount += group.length;
+    for(const [r,c] of group){
+      const p = cellCenter(r,c);
+      const b = grid[r][c];
+      spawnPopParticles(p.x, p.y, b.color || '#ffd23f');
+      if(b.special === 'bonus'){
+        const bonus = 50;
+        score += bonus;
+        if(currentUserData){
+          currentUserData.coins += 5;
+          updateDoc(doc(db, "users", currentUserData.email), { coins: increment(5) });
+        }
+        addScorePopup(p.x, p.y, `+${bonus} ★`, 4);
+      }
+      grid[r][c] = null;
+    }
+    addScorePopup(cellCenter(group[0][0],group[0][1]).x, cellCenter(group[0][0],group[0][1]).y, `+${gained}`, 2);
+    Audio.pop();
+    vibrate(20);
+    updateHUD();
+  }
+
+  function explodeBomb(r,c){
+    Audio.bomb(); vibrate(40);
+    const affected = [[r,c]];
+    for(const [nr,nc] of neighbors(r,c)){
+      affected.push([nr,nc]);
+      for(const [nnr,nnc] of neighbors(nr,nc)){
+        if(!affected.some(a=>a[0]===nnr&&a[1]===nnc)) affected.push([nnr,nnc]);
+      }
+    }
+    let gained = 0;
+    for(const [rr,cc] of affected){
+      const b = grid[rr][cc];
+      if(!b) continue;
+      const p = cellCenter(rr,cc);
+      spawnPopParticles(p.x, p.y, b.color || '#ff8a3d');
+      grid[rr][cc] = null;
+      gained += 15;
+      poppedCount++;
+    }
+    score += gained;
+    addScorePopup(cellCenter(r,c).x, cellCenter(r,c).y, `💥 +${gained}`, 6);
+    updateHUD();
+    const floating = findFloating();
+    dropFloating(floating);
+  }
+
+  function findFloating(){
+    const anchored = new Set();
+    const stack = [];
+    for(let c=0; c<colsInRow(0); c++){
+      if(grid[0][c]){ stack.push([0,c]); anchored.add('0,'+c); }
+    }
+    while(stack.length){
+      const [r,c] = stack.pop();
+      for(const [nr,nc] of neighbors(r,c)){
+        const k = nr+','+nc;
+        if(anchored.has(k)) continue;
+        if(grid[nr][nc]){ anchored.add(k); stack.push([nr,nc]); }
+      }
+    }
+    const floating = [];
+    for(let r=0;r<grid.length;r++){
+      for(let c=0;c<colsInRow(r);c++){
+        if(grid[r][c] && !anchored.has(r+','+c)){
+          floating.push([r,c]);
+        }
+      }
+    }
+    return floating;
+  }
+  function dropFloating(floating){
+    if(floating.length === 0) return;
+    const bonus = floating.length * 15;
+    score += bonus;
+    fallenBonus += bonus;
+    for(const [r,c] of floating){
+      const p = cellCenter(r,c);
+      const b = grid[r][c];
+      fallingBubbles.push({x:p.x, y:p.y, vx:rand(-60,60), vy:rand(-50,50), color:b.color, life:1});
+      grid[r][c] = null;
+    }
+    addScorePopup(W/2, H/2, `Fall +${bonus}`, 4);
+    Audio.fall();
+    updateHUD();
+  }
+
+  function spawnPopParticles(x,y,color){
+    if(currentUserData?.settings?.reducedMotion) return;
+    for(let i=0;i<8;i++){
+      const a = Math.random()*Math.PI*2;
+      const s = rand(80,200);
+      particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-50,r:rand(2,5),color,life:1});
+    }
+  }
+  function addScorePopup(x,y,text,size=2){
+    scorePopups.push({x,y,text,life:1,size});
+  }
+
+  function checkEndConditions(){
+    let remaining = 0;
+    for(let r=0;r<levelCfg.rows;r++){
+      for(let c=0;c<colsInRow(r);c++){
+        if(grid[r][c]) remaining++;
+      }
+    }
+    if(remaining === 0){ winLevel(); return; }
+    if(movesLeft <= 0){ failLevel(); return; }
+    for(let r=levelCfg.rows; r<grid.length; r++){
+      for(let c=0;c<colsInRow(r);c++){
+        if(grid[r][c]){
+          const p = cellCenter(r,c);
+          if(p.y > launcher.y - R*2){ failLevel(); return; }
+        }
+      }
+    }
+  }
+
+  async function winLevel(){
+    state = 'ended';
+    const u = currentUserData; if(!u) return;
+    const stars = computeStars(score, levelCfg.stars);
+    const prev = u.completedLevels[levelIdx];
+    const isNewBest = !prev || score > prev.score;
+    const coinsEarned = 20 + stars*15 + (isNewBest?25:0);
+    
+    const newCompleted = { ...u.completedLevels };
+    newCompleted[levelIdx] = {
+      score: Math.max(score, prev?.score||0),
+      stars: Math.max(stars, prev?.stars||0)
+    };
+
+    await updateDoc(doc(db, "users", u.email), {
+      completedLevels: newCompleted,
+      unlocked: Math.max(u.unlocked, levelIdx >= LEVELS.length ? LEVELS.length : levelIdx + 1),
+      coins: increment(coinsEarned),
+      'gameStats.levelsCompleted': increment(1),
+      'gameStats.popped': increment(poppedCount),
+      'gameStats.shots': increment(shotsUsed),
+      'gameStats.stars': increment(stars),
+      'gameStats.bestScore': isNewBest ? score : undefined,
+      'gameStats.gamesPlayed': increment(1)
+    });
+    currentUserData = { ...u, completedLevels: newCompleted, coins: u.coins + coinsEarned };
+
+    // ✅ Admin settings based earning
+    let realEarning = 0;
+    const earningRow = $('#earningRow');
+    if (earningRow) earningRow.style.display = 'none';
+    
+    if (u.deposited && appSettings.gameEarningsEnabled !== false) {
+      realEarning = appSettings.earningPerMatch || 5;
+      await updateDoc(doc(db, "users", u.email), {
+        realBalance: increment(realEarning)
+      });
+      await addDoc(collection(db, "transactions"), {
+        userId: u.email,
+        type: 'game_earning',
+        amount: realEarning,
+        status: 'completed',
+        detail: `Level ${levelIdx} completed`,
+        createdAt: serverTimestamp()
+      });
+      currentUserData.realBalance += realEarning;
+      if (earningRow) {
+        earningRow.style.display = 'flex';
+        $('#winEarning').textContent = `৳${realEarning}`;
+      }
+      toast(`৳${realEarning} earned from gameplay!`);
+    }
+
+    Audio.win();
+    showWinScreen(stars, coinsEarned, isNewBest, realEarning);
+  }
+
+  async function failLevel(){
+    state = 'ended';
+    const u = currentUserData; if(!u) return;
+    await updateDoc(doc(db, "users", u.email), {
+      'gameStats.shots': increment(shotsUsed)
+    });
+    Audio.fail();
+    showFailScreen();
+  }
+
+  function computeStars(sc, thresholds){
+    if(sc >= thresholds[2]) return 3;
+    if(sc >= thresholds[1]) return 2;
+    if(sc >= thresholds[0]) return 1;
+    return 0;
+  }
+
+  function showWinScreen(stars, coins, isNewBest, realEarning = 0){
+    $('#winTitle').textContent = levelIdx === 10 ? ' Bubble Master!' : '🎉 Level Complete!';
+    $('#winScore').textContent = score;
+    $('#winStars').innerHTML = [1,2,3].map(n=>`<span class="${n<=stars?'':'off'}">⭐</span>`).join('');
+    $('#winSub').textContent = isNewBest ? '🎊 New Best Score!' : (levelIdx===10 ? 'You conquered all 10 levels!' : 'Great job!');
+    $('#winPopped').textContent = poppedCount;
+    $('#winShots').textContent = shotsUsed;
+    $('#winFallen').textContent = fallenBonus;
+    $('#winCombo').textContent = comboBonus;
+    $('#winCoins').textContent = coins;
+    const nextBtn = $('#btnNext');
+    if(levelIdx >= LEVELS.length){
+      nextBtn.textContent = '🏠 Return Home';
+      nextBtn.onclick = () => { hideOverlay('ovWin'); showScreen('home'); };
+    } else {
+      nextBtn.textContent = '▶ Next Level';
+      nextBtn.onclick = () => { hideOverlay('ovWin'); startLevel(levelIdx+1); };
+    }
+    showOverlay('ovWin');
+  }
+  function showFailScreen(){
+    $('#failScore').textContent = score;
+    $('#failTarget').textContent = levelCfg.stars[0] + ' (1★)';
+    $('#failMsg').textContent = movesLeft <= 0 ? 'You ran out of moves.' : 'Bubbles reached the danger line.';
+    showOverlay('ovFail');
+  }
+
+  function getPointer(e){
+    const rect = canvas.getBoundingClientRect();
+    const t = e.touches ? e.touches[0] : e;
+    return { x: t.clientX - rect.left, y: t.clientY - rect.top };
+  }
+  function updateAim(pt){
+    const dx = pt.x - launcher.x;
+    const dy = pt.y - launcher.y;
+    let ang = Math.atan2(dy, dx);
+    const minAng = -Math.PI + 0.18;
+    const maxAng = -0.18;
+    if(ang > maxAng && ang < Math.PI/2) ang = maxAng;
+    if(ang < minAng && ang > -Math.PI/2) ang = minAng;
+    if(ang > 0) ang = (ang < Math.PI/2) ? maxAng : minAng;
+    launcher.angle = ang;
+  }
+
+  function onDown(e){
+    if(state !== 'idle') return;
+    e.preventDefault();
+    Audio.init();
+    const pt = getPointer(e);
+    pointer.down = true; pointer.x = pt.x; pointer.y = pt.y;
+    state = 'aiming';
+    updateAim(pt);
+  }
+  function onMove(e){
+    if(!pointer.down) return;
+    if(state !== 'aiming') return;
+    e.preventDefault();
+    const pt = getPointer(e);
+    pointer.x = pt.x; pointer.y = pt.y;
+    updateAim(pt);
+  }
+  function onUp(e){
+    if(!pointer.down) return;
+    pointer.down = false;
+    if(state !== 'aiming') return;
+    shoot();
+  }
+  function shoot(){
+    if(state !== 'aiming') return;
+    if(movesLeft <= 0){ toast('No moves left'); state='idle'; return; }
+    const ang = launcher.angle;
+    projectile = {
+      x: launcher.x + Math.cos(ang)*(R+10),
+      y: launcher.y + Math.sin(ang)*(R+10),
+      vx: Math.cos(ang), vy: Math.sin(ang),
+      color: bombMode ? null : currentColor,
+      special: bombMode ? 'bomb' : null
+    };
+    state = 'shooting';
+    movesLeft--;
+    shotsUsed++;
+    Audio.shoot();
+    vibrate(8);
+    updateHUD();
+  }
+
+  canvas.addEventListener('mousedown', onDown);
+  canvas.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onUp);
+  canvas.addEventListener('touchstart', onDown, {passive:false});
+  canvas.addEventListener('touchmove', onMove, {passive:false});
+  canvas.addEventListener('touchend', onUp, {passive:false});
+  canvas.addEventListener('touchcancel', onUp, {passive:false});
+
+  function loop(ts){
+    const dt = Math.min(0.033, (ts - lastTime)/1000 || 0);
+    lastTime = ts;
+    update(dt);
+    render();
+    animId = requestAnimationFrame(loop);
+  }
+
+  function start(){
+    cancelAnimationFrame(animId);
+    lastTime = performance.now();
+    animId = requestAnimationFrame(loop);
+  }
+  function stop(){ cancelAnimationFrame(animId); }
+
+  function updatePowerups(){
+    const u = currentUserData; if(!u) return;
+    $('#puColor').disabled = u.coins < 20;
+    $('#puBomb').disabled = u.coins < 50;
+    $('#puExtra').disabled = u.coins < 80;
+  }
+
+  return {
+    initLevel, start, stop, resize,
+    get state(){ return state },
+    set paused(v){ state = v ? 'paused' : 'idle'; },
+    set aimGuide(v){ aimGuideActive = v; },
+    useColorSwitch(){
+      const u = currentUserData; if(!u) return false;
+      if(u.coins < 20) { toast('Not enough coins'); return false; }
+      updateDoc(doc(db, "users", u.email), { coins: increment(-20) });
+      u.coins -= 20;
+      const opts = levelCfg.colors.filter(c=>c!==currentColor);
+      currentColor = opts.length ? choice(opts) : currentColor;
+      updatePowerups();
+      toast('Color switched');
+      Audio.click();
+      return true;
+    },
+    useBomb(){
+      const u = currentUserData; if(!u) return false;
+      if(u.coins < 50) { toast('Not enough coins'); return false; }
+      updateDoc(doc(db, "users", u.email), { coins: increment(-50) });
+      u.coins -= 50;
+      bombMode = true;
+      updatePowerups();
+      toast('Bomb loaded — aim and shoot');
+      Audio.click();
+      return true;
+    },
+    useExtra(){
+      const u = currentUserData; if(!u) return false;
+      if(u.coins < 80) { toast('Not enough coins'); return false; }
+      updateDoc(doc(db, "users", u.email), { coins: increment(-80) });
+      u.coins -= 80;
+      movesLeft += 3;
+      updateHUD();
+      updatePowerups();
+      toast('+3 moves added');
+      Audio.reward();
+      return true;
+    },
+    toggleAim(){
+      aimGuideActive = !aimGuideActive;
+      toast(aimGuideActive ? 'Aim guide on' : 'Aim guide off');
+    },
+    updatePowerups
+  };
+})();
+
+function startLevel(idx){
+  // ✅ Check maintenance mode
+  if (appSettings.maintenanceMode) {
+    toast('🚧 গেমটি এখন মেইনটেন্যান্সে আছে');
+    return;
+  }
+  // ✅ Check daily limit
+  if (appSettings.dailyGameLimit > 0) {
+    const today = new Date().toDateString();
+    const lastDate = currentUserData.gameStats?.lastPlayDate || '';
+    const todayGames = currentUserData.gameStats?.todayGames || 0;
+    if (lastDate === today && todayGames >= appSettings.dailyGameLimit) {
+      toast(`⚠️ আজকের লিমিট শেষ (${appSettings.dailyGameLimit} বার)`);
+      return;
+    }
+  }
+  showScreen('game');
+  Game.initLevel(idx);
+  Game.start();
+  Game.updatePowerups();
+}
+
+function showOverlay(id){ $('#'+id).classList.add('active'); }
+function hideOverlay(id){ $('#'+id).classList.remove('active'); }
+
+$('#btnPause').onclick = () => { if(Game.state==='ended') return; Game.paused = true; showOverlay('ovPause'); Audio.click(); };
+$('#btnResume').onclick = () => { Game.paused = false; hideOverlay('ovPause'); Audio.click(); };
+$('#btnRestart').onclick = () => { hideOverlay('ovPause'); startLevel(parseInt($('#hudLevel').textContent)); };
+$('#btnToLevels').onclick = () => { hideOverlay('ovPause'); Game.stop(); showScreen('levels'); };
+$('#btnHomeFromPause').onclick = () => { hideOverlay('ovPause'); Game.stop(); showScreen('home'); };
+$('#btnReplay').onclick = () => { hideOverlay('ovWin'); startLevel(parseInt($('#hudLevel').textContent)); };
+$('#btnWinLevels').onclick = () => { hideOverlay('ovWin'); showScreen('levels'); };
+$('#btnRetry').onclick = () => { hideOverlay('ovFail'); startLevel(parseInt($('#hudLevel').textContent)); };
+$('#btnFailLevels').onclick = () => { hideOverlay('ovFail'); showScreen('levels'); };
+$('#btnPlay').onclick = () => {
+  if (appSettings.maintenanceMode) {
+    toast('🚧 গেমটি এখন মেইনটেন্যান্সে আছে');
+    return;
+  }
+  const u = currentUserData; if(!u) return;
+  const next = Math.min(u.unlocked, LEVELS.length);
+  const target = Object.keys(u.completedLevels).length >= LEVELS.length ? 1 : next;
+  startLevel(target);
+};
+$('#btnGameSound').onclick = () => {
+  const u = currentUserData; if(!u) return;
+  const newVal = u.settings?.sound === false;
+  updateDoc(doc(db, "users", u.email), { 'settings.sound': newVal });
+  u.settings = { ...u.settings, sound: newVal };
+  $('#btnGameSound').textContent = newVal ? '' : '🔇';
+  $('#btnSound').textContent = newVal ? '🔊' : '🔇';
+};
+$('#btnSound').onclick = () => {
+  const u = currentUserData; if(!u) return;
+  const newVal = u.settings?.sound === false;
+  updateDoc(doc(db, "users", u.email), { 'settings.sound': newVal });
+  u.settings = { ...u.settings, sound: newVal };
+  $('#btnSound').textContent = newVal ? '🔊' : '';
+  $('#btnGameSound').textContent = newVal ? '🔊' : '🔇';
+  renderSettings();
+};
+
+$('#puAim').onclick = () => Game.toggleAim();
+$('#puColor').onclick = () => confirmSpend(20, 'Color Switch', () => Game.useColorSwitch());
+$('#puBomb').onclick = () => confirmSpend(50, 'Bomb Shot', () => Game.useBomb());
+$('#puExtra').onclick = () => confirmSpend(80, 'Extra +3 Moves', () => Game.useExtra());
+
+function confirmSpend(cost, what, fn){
+  const u = currentUserData; if(!u) return;
+  if(u.coins < cost){ toast('Not enough coins'); return; }
+  $('#cfTitle').textContent = `Use ${what}?`;
+  $('#cfMsg').textContent = `Cost: ${cost} coins. Your balance: ${u.coins}.`;
+  $('#cfOk').onclick = () => { hideOverlay('ovConfirm'); fn(); };
+  $('#cfCancel').onclick = () => hideOverlay('ovConfirm');
+  showOverlay('ovConfirm');
+}
+
+function renderWallet(){
+  const u = currentUserData; if(!u) return;
+  $('#wReal').textContent = u.realBalance.toFixed(2);
+  $('#wCoins').textContent = u.coins;
+  const pending = (u.pendingWithdrawals||[]).filter(w => w.status === 'pending');
+  const pn = $('#pendingNotice');
+  if(pending.length > 0){
+    const total = pending.reduce((s,w)=>s+w.amount,0);
+    pn.innerHTML = `<div class="alert warn"><b>Pending Withdrawal:</b> ৳${total.toFixed(2)} is being processed.</div>`;
+  } else pn.innerHTML = '';
+  
+  const txRef = query(collection(db, "transactions"), where("userId", "==", u.email));
+  getDocs(txRef).then(snap => {
+    const tx = snap.docs.map(d => ({id:d.id, ...d.data()})).sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0)).slice(0,30);
+    const host = $('#txList');
+    if(tx.length === 0){ host.innerHTML = '<div class="muted" style="font-size:13px">No transactions yet.</div>'; return; }
+    host.innerHTML = tx.map(t => {
+      const sign = t.amount >= 0 ? '+' : '';
+      const cls = t.amount >= 0 ? 'plus' : 'minus';
+      const status = t.status === 'pending' ? '<span class="status-pill pending">PENDING</span>' :
+                     t.status === 'completed' ? '<span class="status-pill done">COMPLETED</span>' :
+                     t.status === 'rejected' ? '<span class="status-pill rejected">REJECTED</span>' : '';
+      const dateStr = t.createdAt ? new Date(t.createdAt.seconds * 1000).toLocaleString() : '';
+      return `
+        <div class="tx-item">
+          <div class="tx-main">
+            <div class="tx-title">${t.type} ${status}</div>
+            <div class="tx-sub">${dateStr}${t.detail?' • '+t.detail:''}</div>
+          </div>
+          <div class="tx-amt ${cls}">${sign}৳${Math.abs(t.amount).toFixed(2)}</div>
+        </div>
+      `;
+    }).join('');
+  });
+}
+
+$('#btnDeposit').onclick = () => showScreen('deposit');
+$('#btnWithdraw').onclick = () => showScreen('withdraw');
+
+function renderDeposit(){
+  $('#depBkash').value = '';
+  $('#depTxn').value = '';
+  clearAllErr('depBkashErr','depTxnErr');
+}
+
+$('#btnSubmitDeposit').onclick = async () => {
+  clearAllErr('depBkashErr','depTxnErr');
+  const u = currentUserData; if(!u) return;
+  const bk = $('#depBkash').value.trim();
+  const txn = $('#depTxn').value.trim();
+  if(!bk){ showErr('depBkashErr','Sender number required'); return; }
+  if(!validateBDPhone(bk)){ showErr('depBkashErr','Invalid bKash number'); return; }
+  if(!txn || txn.length < 5){ showErr('depTxnErr','Valid Transaction ID required'); return; }
+  
+  try {
+    await addDoc(collection(db, "transactions"), {
+      userId: u.email,
+      type: 'deposit',
+      amount: appSettings.depositAmount,
+      status: 'pending',
+      detail: `bKash: ${bk} • TXN: ${txn}`,
+      createdAt: serverTimestamp()
+    });
+    toast("✅ Deposit submitted. Waiting for Admin approval...");
+    showScreen('wallet');
+  } catch (e) {
+    toast("❌ Error: " + e.message);
+  }
+};
+
+function renderWithdraw(){
+  const u = currentUserData; if(!u) return;
+  $('#wdAvail').textContent = u.realBalance.toFixed(2);
+  $('#wdAmt').value = '';
+  $('#wdBkash').value = u.phone || '';
+  clearAllErr('wdAmtErr','wdBkashErr');
+}
+$('#btnSubmitWithdraw').onclick = async () => {
+  clearAllErr('wdAmtErr','wdBkashErr');
+  const u = currentUserData; if(!u) return;
+  const amt = parseFloat($('#wdAmt').value);
+  const bk = $('#wdBkash').value.trim();
+  const minWd = appSettings.minWithdrawal || 50;
+  if(!amt || isNaN(amt)){ showErr('wdAmtErr','Enter valid amount'); return; }
+  if(amt < minWd){ showErr('wdAmtErr',`Minimum ৳${minWd}`); return; }
+  if(amt > u.realBalance){ showErr('wdAmtErr','Insufficient balance'); return; }
+  
+  if (u.withdrawalCount >= 1) {
+    if (!u.deposited) {
+      showErr('wdAmtErr', 'দ্বিতীয় উইথড্রয়ের জন্য আপনাকে অবশ্যই প্রথমে ডিপোজিট করতে হবে।');
+      return;
+    }
+    if (u.activeReferrals < 1) {
+      showErr('wdAmtErr', 'দ্বিতীয় উইথড্রয়ের জন্য আপনার অন্তত ১ জন সক্রিয় রেফারেল প্রয়োজন।');
+      return;
+    }
+  }
+
+  try {
+    await addDoc(collection(db, "withdrawals"), {
+      userId: u.email,
+      amount: amt,
+      bkashNumber: bk,
+      status: 'pending',
+      createdAt: serverTimestamp()
+    });
+    await updateDoc(doc(db, "users", u.email), {
+      realBalance: increment(-amt),
+      withdrawalCount: increment(1)
+    });
+    await addDoc(collection(db, "transactions"), {
+      userId: u.email,
+      type: 'withdrawal',
+      amount: -amt,
+      status: 'pending',
+      detail: `To bKash: ${bk}`,
+      createdAt: serverTimestamp()
+    });
+    toast("Withdrawal requested! Processing time: 5–10 hours.");
+    showScreen('wallet');
+  } catch (e) {
+    toast("Error processing withdrawal.");
+  }
+};
+
+function renderRewards(){
+  const u = currentUserData; if(!u) return;
+  const host = $('#rewardsList');
+  host.innerHTML = `
+    <div class="card solid" style="margin-bottom:12px">
+      <h3 style="margin-bottom:10px">🏆 Achievements</h3>
+      ${[
+        { id:'first', name:'First Pop', desc:'Complete your first level', icon:'', reward:50, check:()=>u.gameStats?.levelsCompleted>=1 },
+        { id:'three', name:'Triple Star', desc:'Earn 3 stars on any level', icon:'⭐', reward:100, check:()=>Object.values(u.completedLevels||{}).some(c=>c.stars>=3) },
+        { id:'five', name:'Halfway Hero', desc:'Complete 5 levels', icon:'', reward:150, check:()=>u.gameStats?.levelsCompleted>=5 },
+        { id:'ten', name:'Bubble Master', desc:'Complete all 10 levels', icon:'🏆', reward:500, check:()=>u.gameStats?.levelsCompleted>=10 }
+      ].map(a => {
+        const done = !!u.claimedRewards?.['ach_'+a.id];
+        const ready = !done && a.check();
+        return `
+          <div class="reward-card ${done?'claimed':''}">
+            <div class="ic">${a.icon}</div>
+            <div style="flex:1;min-width:0">
+              <div class="t">${a.name}</div>
+              <div class="s">${a.desc}</div>
+            </div>
+            <div>
+              ${done ? '<span style="color:#6ee36a;font-weight:700">✓</span>' :
+                (ready ? `<button class="btn" data-claim="${a.id}" style="padding:8px 12px;font-size:11px">+${a.reward}</button>` :
+                `<span class="muted" style="font-size:11px">🪙 ${a.reward}</span>`)}
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+    <div style="height:40px"></div>
+  `;
+  host.querySelectorAll('[data-claim]').forEach(b => {
+    b.onclick = async () => {
+      const id = b.dataset.claim;
+      const a = [
+        { id:'first', reward:50, check:()=>u.gameStats?.levelsCompleted>=1 },
+        { id:'three', reward:100, check:()=>Object.values(u.completedLevels||{}).some(c=>c.stars>=3) },
+        { id:'five', reward:150, check:()=>u.gameStats?.levelsCompleted>=5 },
+        { id:'ten', reward:500, check:()=>u.gameStats?.levelsCompleted>=10 }
+      ].find(x=>x.id===id);
+      if(!a || u.claimedRewards?.['ach_'+id]) return;
+      if(!a.check()){ toast('Not yet unlocked'); return; }
+      await updateDoc(doc(db, "users", u.email), {
+        [`claimedRewards.ach_${id}`]: true,
+        coins: increment(a.reward)
+      });
+      currentUserData.coins += a.reward;
+      if(!currentUserData.claimedRewards) currentUserData.claimedRewards = {};
+      currentUserData.claimedRewards['ach_'+id] = true;
+      toast(`Achievement: ${a.name} +${a.reward} coins`);
+      Audio.reward();
+      renderRewards();
+      refreshHome();
+    };
+  });
+}
+
+function renderReferral(){
+  const u = currentUserData; if(!u) return;
+  $('#myRefCode').textContent = u.refCode;
+  $('#refTotal').textContent = (u.referrals?.length || 0);
+  $('#refActive').textContent = u.activeReferrals || 0;
+  $('#refEarn').textContent = u.referralEarnings || 0;
+  const noteEl = $('#refDepositNote');
+  if (noteEl) {
+    if (u.deposited) {
+      noteEl.textContent = '✅ আপনার ডিপোজিট সম্পন্ন হয়েছে। আপনি রেফারেল বোনাস পেতে প্রস্তুত।';
+      noteEl.style.color = '#6ee36a';
+    } else {
+      noteEl.textContent = '⚠️ রেফারেল বোনাস পেতে হলে আপনাকে প্রথমে ডিপোজিট করতে হবে।';
+      noteEl.style.color = '#ffb257';
+    }
+  }
+}
+
+$('#btnApplyReferral').onclick = async () => {
+  clearErr('applyRefErr');
+  const u = currentUserData;
+  if (!u) return;
+  if (u.referredBy) {
+    showErr('applyRefErr', 'আপনার ইতিমধ্যে একটি রেফারার আছে।');
+    return;
+  }
+  const code = $('#applyRefCode').value.trim().toUpperCase();
+  if (!code) {
+    showErr('applyRefErr', 'কোড আবশ্যক।');
+    return;
+  }
+  const btn = $('#btnApplyReferral');
+  btn.disabled = true;
+  btn.textContent = 'Checking...';
+  try {
+    const q = query(collection(db, "users"), where("refCode", "==", code));
+    const querySnapshot = await getDocs(q);
+    if (querySnapshot.empty) {
+      showErr('applyRefErr', 'ভুল রেফারেল কোড।');
+      btn.disabled = false; btn.textContent = 'Submit Referral Code'; return;
+    }
+    const referrerDoc = querySnapshot.docs[0];
+    const referrerEmail = referrerDoc.id;
+    const referrerData = referrerDoc.data();
+    if (referrerEmail === u.email) {
+      showErr('applyRefErr', 'নিজের কোড ব্যবহার করা যাবে না।');
+      btn.disabled = false; btn.textContent = 'Submit Referral Code'; return;
+    }
+    if (!referrerData.deposited) {
+      showErr('applyRefErr', 'এই রেফারার এখনও ডিপোজিট করেননি।');
+      btn.disabled = false; btn.textContent = 'Submit Referral Code'; return;
+    }
+    await updateDoc(doc(db, "users", u.email), { referredBy: referrerEmail });
+    const refDoc = doc(db, "users", referrerEmail);
+    await updateDoc(refDoc, { referrals: arrayUnion(u.email) });
+    currentUserData.referredBy = referrerEmail;
+    toast("রেফারেল কোড সফলভাবে যুক্ত হয়েছে!");
+    $('#applyRefCode').value = '';
+    renderReferral();
+  } catch (e) {
+    showErr('applyRefErr', 'কোড যুক্ত করতে সমস্যা হয়েছে।');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Submit Referral Code';
+  }
+};
+
+function renderProfile(){
+  const u = currentUserData; if(!u) return;
+  $('#profEmail').textContent = u.email;
+  $('#profPhone').textContent = u.phone;
+  $('#profAvatar').textContent = u.email.charAt(0).toUpperCase();
+  $('#profLv').textContent = u.level || 1;
+  $('#profXp').textContent = u.xp || 0;
+  const s = u.gameStats || {};
+  $('#statsList').innerHTML = `
+    <div class="stat-row"><span> Games Played</span><span>${s.gamesPlayed||s.games||0}</span></div>
+    <div class="stat-row"><span> Bubbles Popped</span><span>${s.popped||0}</span></div>
+    <div class="stat-row"><span>🎯 Shots Fired</span><span>${s.shots||0}</span></div>
+    <div class="stat-row"><span>🏆 Levels Completed</span><span>${s.levelsCompleted||0}</span></div>
+    <div class="stat-row"><span>⭐ Total Stars</span><span>${s.stars||0}</span></div>
+    <div class="stat-row"><span> Best Score</span><span>${s.bestScore||0}</span></div>
+    <div class="stat-row"><span>💵 Real Balance</span><span>৳${u.realBalance.toFixed(2)}</span></div>
+    <div class="stat-row"><span>💳 Deposits</span><span>${u.depositCount||0}</span></div>
+    <div class="stat-row"><span>🏦 Withdrawals</span><span>${u.withdrawalCount||0}</span></div>
+  `;
+}
+
+function renderSettings(){
+  const u = currentUserData; if(!u) return;
+  $('#setSound').classList.toggle('on', u.settings?.sound !== false);
+  $('#setVibrate').classList.toggle('on', u.settings?.vibrate !== false);
+  $('#setMotion').classList.toggle('on', u.settings?.reducedMotion);
+  $('#setAim').classList.toggle('on', u.settings?.aimGuide !== false);
+}
+function bindToggle(id, key){
+  $('#'+id).onclick = async () => {
+    const u = currentUserData; if(!u) return;
+    const newVal = u.settings?.[key] === false;
+    await updateDoc(doc(db, "users", u.email), { [`settings.${key}`]: newVal });
+    u.settings = { ...u.settings, [key]: newVal };
+    renderSettings();
+    if(key==='sound'){
+      $('#btnSound').textContent = newVal ? '🔊' : '🔇';
+      $('#btnGameSound').textContent = newVal ? '🔊' : '🔇';
+    }
+  };
+}
+bindToggle('setSound','sound');
+bindToggle('setVibrate','vibrate');
+bindToggle('setMotion','reducedMotion');
+bindToggle('setAim','aimGuide');
+
+$('#btnReset').onclick = () => {
+  $('#cfTitle').textContent = 'Reset Game Progress?';
+  $('#cfMsg').textContent = 'This will reset your levels, coins, and stats. Your account, balance, and transactions will be preserved.';
+  $('#cfOk').onclick = async () => {
+    const u = currentUserData; if(!u) return;
+    await updateDoc(doc(db, "users", u.email), {
+      coins: 200,
+      xp: 0,
+      level: 1,
+      unlocked: 1,
+      completedLevels: {},
+      gameStats: { levelsCompleted: 0, bestScore: 0, popped: 0, shots: 0, stars: 0, gamesPlayed: 0 },
+      claimedRewards: {}
+    });
+    hideOverlay('ovConfirm');
+    toast('Game progress reset');
+    showScreen('home');
+  };
+  $('#cfCancel').onclick = () => hideOverlay('ovConfirm');
+  showOverlay('ovConfirm');
+};
+
+window.addEventListener('resize', () => {
+  if($('#screen-game').classList.contains('active')) Game.resize();
+});
+
+window.addEventListener('keydown', e => {
+  if(e.key === 'Escape'){
+    if($('#screen-game').classList.contains('active') && Game.state !== 'ended'){
+      if($('#ovPause').classList.contains('active')){
+        Game.paused = false; hideOverlay('ovPause');
+      } else {
+        Game.paused = true; showOverlay('ovPause');
+      }
+    } else {
+      $$('.overlay.active').forEach(o=>o.classList.remove('active'));
+    }
+  }
+});
+</script>
+</body>
+</html>
